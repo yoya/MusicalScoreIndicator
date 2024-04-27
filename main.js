@@ -204,16 +204,20 @@ function showProgressBar() {
 
 function main() {
     $("#video").src = config.file;
-    $("#video").on("canplaythrough", pauseVideo);
+    $("#video").on("canplaythrough", e => {
+	if (! context.playing)  {
+	    pauseVideo(e)
+	}
+    });
     $("#video").on("durationchange", durationVideo);
     $("#video").on(["play", "playing"], (e) => { context.playing = true; });
     $("#video").on("pause", (e) => { context.playing = false; });
     // botton handler
     $("#playButton").on("click", (e) => {
         if (context.playing) {
-            pauseVideo();
+            pauseVideo(e);
         } else {
-            playVideo();
+            playVideo(e);
         }
     });
     // botton handler
