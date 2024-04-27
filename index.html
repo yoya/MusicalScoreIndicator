@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .flex { display: flex; }
+      .col { flex-direction: column; }
+      .row { flex-direction: row; }
+      .left { float: left; }
+      button { margin: 0.5em; }
+      text { margin: 0.5em; padding: 0.5em;
+             border: thick solid green;
+             border-width: thin; }
+      #progressBarContainer {
+          margin: 0.5em;
+          border: thick solid blue;
+          border-width: thin; }
+      #progressBar {
+          margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex">
+      <div class="col">
+        <video id="video" width="320" controls> </video>
+      </div>
+      <div class="col">
+        <div class="row">
+          <button id="playButton" style="width:10em; height:8em;">
+            Loading
+          </button>
+        </div>
+        <div class="row">
+          <text id="currentTime"> currentTime </text>
+        </div>
+        <div class="row">
+          <text id="durationTime"> durationTime </text>
+        </div>
+      </div>
+      <div >
+        <div id="progressBarContainer" class="row">
+          <canvas id="progressBar" width="640" height="100"> </canvas>
+        </div>
+        <div class="row">
+          <text id="hitTime"> hitTime </text>
+        </div>
+      </div>
+    </div>
+    <script src="utils.js"> </script>
+    <script src="main.js"> </script>
+  </body>
+</html>
