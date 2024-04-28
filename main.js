@@ -88,7 +88,7 @@ function hitProgressBar(x, y, width, height) {
     switch (choice) {
     case 0:
         for (const t1 of config.timeSchedule) {
-            const tt = stringToTime(t1.bar[0][1]);
+            const tt = stringToTime(t1.rehearsal[0][1]);
             if (t < tt) {
                 break;
             }
@@ -97,7 +97,7 @@ function hitProgressBar(x, y, width, height) {
         break;
     case 1:
         for (const t1 of config.timeSchedule) {
-            for (const b of t1.bar) {
+            for (const b of t1.rehearsal) {
                 const tt = stringToTime(b[1]);
                 if (t < tt) {
                     break;
@@ -125,7 +125,7 @@ function makeProgressBase() {
     const ctx = c.getContext("2d");
     let prevT = -1, prevComment;
     for (const t of config.timeSchedule) {
-        const t2 = stringToTime(t.bar[0][1]);
+        const t2 = stringToTime(t.rehearsal[0][1]);
         if (0 <= prevT) {
             ctx.fillStyle = getNextColor();
             const x = width * prevT / duration;
@@ -142,10 +142,9 @@ function makeProgressBase() {
         prevT = t2;
     }
     for (const t of config.timeSchedule) {
-        let prevTT = -1, prevBar;
-        for (const i in t.bar) {
-            const b = t.bar[i];
-            const [bar, timeStr] = b;
+        let prevTT = -1;
+        for (const i in t.rehearsal) {
+            const [rehearsal, timeStr] = t.rehearsal[i];
             const tt = stringToTime(timeStr);
             if (0 <= prevTT) {
                 const x = width * prevTT / duration;
@@ -156,20 +155,20 @@ function makeProgressBase() {
                 ctx.fillRect(x, y, w, h);
             }
             prevTT = tt;
-            prevBar = bar;
         }
-        for (const i in t.bar) {
-            const b = t.bar[i];
-            const [bar, timeStr] = b;
+        let  prevRehearsal;
+        for (const i in t.rehearsal) {
+            const b = t.rehearsal[i];
+            const [rehearsal, timeStr] = b;
             const tt = stringToTime(timeStr);
             if (0 <= prevTT) {
                 const x = width * prevTT / duration;
                 const y = [(height*2/5), (height/2), (height*3/5)][((i-1)%3)];
                 ctx.fillStyle = "black";
-                ctx.fillText(prevBar, x, y+4);
+                ctx.fillText(prevRehearsal, x, y+4);
             }
             prevTT = tt;
-            prevBar = bar;
+            prevRehearsal = rehearsal;
         }
         ctx.fillStyle = "black";
         ctx.fillRect(0, height*2/3, width, height/3);
