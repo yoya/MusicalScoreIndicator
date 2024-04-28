@@ -149,8 +149,8 @@ function makeProgressBase() {
             if (0 <= prevTT) {
                 const x = width * prevTT / duration;
                 const w = width * (tt - prevTT) / duration;
-                const y = height/3;
-                const h = height/3;
+                const y = height/3 + ((i-1)%3) * height / 9;
+                const h = height/3/3;
                 ctx.fillStyle = getNextColor();
                 ctx.fillRect(x, y, w, h);
             }
@@ -170,6 +170,8 @@ function makeProgressBase() {
             prevTT = tt;
             prevBar = bar;
         }
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, height*2/3, width, height/3);
     }
     baseImageData = ctx.getImageData(0, 0, width, height);
 }
