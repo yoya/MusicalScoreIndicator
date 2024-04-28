@@ -224,10 +224,21 @@ function main() {
         }
     });
     // botton handler
-    $("#progressBarContainer").on(["mousedown", "mousemove", "mouseup"], (e) => {
-        if (! e.buttons) return ;
+    const pushEvents = [ "mousedown", "mousemove", "mouseup",
+                         "touchstart", "touchmove", "touchend",
+                         "pointermove" ];
+    $("#progressBarContainer").on(pushEvents, (e) => {
+        const isMouse = (e.type[0] === "m");
+        const isTouch = (e.type[0] === "t");
+        const isPointer = (e.type[0] === "p");
+        if (isPointer) {  // touch イベントは offsetX,Y ないので代わりに取得
+            context.offsetX = e.offsetX;
+            context.offsetY = e.offsetY;
+            return ;
+        }
+        if (isMouse && (! e.buttons)) return ;
         const { width, height } = $("#progressBar");
-        const { offsetX, offsetY } = e;
+        let { offsetX, offsetY } = (isTouch)? context: e;
         const t = hitProgressBar(offsetX, offsetY, width, height);
         hitVideo(t);
         $("#video").currentTime = t;  // seek video
