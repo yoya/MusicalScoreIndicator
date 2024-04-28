@@ -21,7 +21,7 @@ const TICK = 100;  // 0.1sec
 
 let bootFlags = 0;
 
-const _main = () => {
+function _main() {
     if (bootFlags === 3) {
         main();
     }
