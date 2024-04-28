@@ -1,5 +1,11 @@
 "use strict";
 
+/*
+ * https://developer.mozilla.org/ja/docs/Web/API/URLSearchParams
+ * https://developer.mozilla.org/ja/docs/Web/HTML/Element/video
+ * https://developer.mozilla.org/ja/docs/Web/API/OfflineAudioContext
+ */
+
 const file = "daphchlo-no1.mp4";
 
 const context = {
@@ -9,45 +15,40 @@ const context = {
     hitTime: 0.0,
 };
 
-const config = {
-    file: "daphchlo-no1.mp4",
-    timeSchedule: [
-        { comment: "1 movement",
-          bar:[ [70, "4s"], [71 ,"45s", ], [72, "1m05s"], [73, "1m21s"],
-                [74, "1m44s"], [75, "2m15s"], [76, "2m39s"], [77, "2m55s"],
-                [78, "3m20s"], [79, "3m46s"], [80, "4m3s"],
-                [81, "4m20s"], [82, "4m41s"], [83, "5m1s"]
-              ]
-        },
-        { comment: "2 movement",
-          bar:[ [83, "5m1s"], [84, "5m31s"], [85, "5m50s"], [86, "6m12s"],
-                [87, "6m25s"],
-                [88, "6m41s"], [89, "6m59s"], [90, "7m11s"], [91, "7m23s"],
-                [92, "7m34s"] ]
-        },
-        { comment: "3 movement",
-          bar:[ [92, "7m34s"], [93, "7m39s"], [94, "7m44s"],
-                [95, "7m50s"], [96, "7m57s"], [97, "8m3s"],
-                [98, "8m10s"], [99, "8m17s"], [100, "8m23s"],
-                [101, "8m26s"], [102, "8m33s"], [103, "8m40s"],
-                [104, "8m47s"], [105, "8m54s"], [106, "9m1s"], [107, "9m7s"],
-                [108, "9m14s"], [109, "9m20s"], [110, "9m27s"],
-                [111, "9m32s"], [112, "9m40s"],
-                [113, "9m47s"], [114, "9m50s"], [115, "9m58s"],
-                [116, "10m6s"], [117, "10m10s"],
-                [118, "10m17s"], [119, "10m21s"],
-                [120, "10m27s"], [121, "10m32s"],
-                [122, "10m43s"], [123, "10m50s"],[124, "10m54s"], [125,"10m59s"],
-                [126, "11m2s"], [127, "11m9s"], [128, "11m14s"], [129, "11m19s"],
-                [130, "11m26s"], [131, "11m36s"] ]
-        },
-        { comment: "terminater", bar:[ [131, "11m36s"] ] }
-    ]
-};
+let config;
 
 const TICK = 100;  // 0.1sec
 
-document.addEventListener("DOMContentLoaded", main);
+let bootFlags = 0;
+
+const _main = () => {
+    if (bootFlags === 3) {
+        main();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    bootFlags |= 1;
+    _main();
+});
+
+(() => {
+    //     const params = new URLSearchParams(url.search);
+    const url = new URL(window.location);
+    const file = url.searchParams.get("c");
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = (e) => {
+        console.log({ url, file, xhr, e });
+        if (xhr.readyState === 4) {
+            config = JSON.parse(xhr.responseText);
+            bootFlags |= 2;
+            _main();
+        }
+    }
+    xhr.open("GET", file, true); // async:true
+    xhr.send(null);
+})();
+
 
 function playVideo() {
     console.debug("playVideo");
