@@ -231,6 +231,7 @@ function main() {
         const t = hitProgressBar(offsetX, offsetY, width, height);
         hitVideo(t);
         $("#video").currentTime = t;  // seek video
+        showProgressBar();
         setTimeout(() => { playVideo() }, 200);  // 直後に play しても無駄
     });
     // interval process
