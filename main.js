@@ -50,17 +50,18 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 
 
-function playVideo() {
+function playVideo() {  // 動画 play 状態になった時に呼ぶ
     console.debug("playVideo");
     $("#playButton").innerText = "Pause";
-    $("#video").play();
     currentVideo();
+    context.playing = true
 }
-function pauseVideo() {
+
+function pauseVideo() {  // 動画 pause 状態になった時に呼ぶ
     console.debug("pauseVideo");
     $("#playButton").innerText = "Play";
-    $("#video").pause();
     currentVideo();
+    context.playing = false;
 }
 
 function currentVideo() {  // 現在時刻を追う
@@ -207,23 +208,32 @@ function showProgressBar() {
 
 function main() {
     $("#video").src = config.file;
+    /*
+     * video event handler
+     */
     $("#video").on("canplaythrough", e => {
 	if (! context.playing)  {
-	    pauseVideo(e)
+            $("#video").pause();
+            pauseVideo();
 	}
     });
     $("#video").on("durationchange", durationVideo);
-    $("#video").on(["play", "playing"], (e) => { context.playing = true; });
-    $("#video").on("pause", (e) => { context.playing = false; });
-    // botton handler
+    $("#video").on("play", playVideo);
+    $("#video").on("playing", e => { $("#video").play(); });
+    $("#video").on(["pause", "ended"], pauseVideo);
+    /*
+     * botton handler
+     */
     $("#playButton").on("click", (e) => {
         if (context.playing) {
-            pauseVideo(e);
+            $("#video").pause();
         } else {
-            playVideo(e);
+            $("#video").play();
         }
     });
-    // botton handler
+    /*
+     * progress handler
+     */
     const pushEvents = [ "mousedown", "mousemove", "mouseup",
                          "touchstart", "touchmove", "touchend",
                          "pointermove" ];
@@ -243,9 +253,12 @@ function main() {
         hitVideo(t);
         $("#video").currentTime = t;  // seek video
         showProgressBar();
-        setTimeout(() => { playVideo() }, 200);  // 直後に play しても無駄
+        // 待たずに play しても無駄
+        setTimeout(() => { $("#video").play(); }, 200);
     });
-    // interval process
+    /*
+     * interval process
+     */
     setInterval(() => {
         if (context.playing) {
             currentVideo();
