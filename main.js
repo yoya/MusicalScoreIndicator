@@ -49,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
     xhr.send(null);
 })();
 
-
 function playVideo() {  // 動画 play 状態になった時に呼ぶ
     console.debug("playVideo");
     $("#playButton").innerText = "Pause";
@@ -79,6 +78,29 @@ function durationVideo() {  // duration が確定する時
 function hitVideo(hitTime) {  // progressBar で時間を指示された
     $("#hitTime").innerText = timeToString(hitTime);
     context.hitTime = hitTime;
+}
+
+function getRehearsalNumber(currentTime) {
+    let prevRehearsal = "-";
+    for (const t of config.timeSchedule) {
+        for (const i in t.rehearsal) {
+            const b = t.rehearsal[i];
+            const [rehearsal, timeStr] = b;
+            const tt = stringToTime(timeStr);
+            if (currentTime <= tt) {
+                return prevRehearsal;
+            }
+            prevRehearsal = rehearsal;
+        }
+    }
+    return prevRehearsal;  // XXX
+}
+
+function rehearsalVideo() {  // 現在時刻から検索
+    const { currentTime } = $("#video");
+    const rehearsalNumber = getRehearsalNumber(currentTime);
+    $("#rehearsalNumber").innerText = rehearsalNumber;
+    context.rehearsalNumber = rehearsalNumber;
 }
 function hitProgressBar(x, y, width, height) {
     const { duration } = context;
@@ -165,6 +187,7 @@ function makeProgressBase() {
                 const x = width * prevTT / duration;
                 const y = [(height*2/5), (height/2), (height*3/5)][((i-1)%3)];
                 ctx.fillStyle = "black";
+                console.log({prevRehearsal});
                 ctx.fillText(prevRehearsal, x, y+4);
             }
             prevTT = tt;
@@ -261,6 +284,7 @@ function main() {
     setInterval(() => {
         if (context.playing) {
             currentVideo();
+            rehearsalVideo();
             showProgressBar();
         }
     }, TICK);
