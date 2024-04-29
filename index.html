@@ -7,15 +7,27 @@
       .col { flex-direction: column; }
       .row { flex-direction: row; }
       .left { float: left; }
-      button { margin: 0.5em;
-               border-width: 1px;
-               border-radius: 2em; }
+      body {
+          background-color: #f4ffff;
+      }
+      button {
+          margin: 0.5em;
+          border-width: 1px;
+          border-radius: 2em;
+          box-shadow: 1px 2px 0 gray;
+      }
+      button:active {
+          box-shadow: none;
+          transform: translateY(5px);
+      }
       textContainer {
           margin: 0.5em;
       }
       text { padding: 0.2em;
              border: thick solid yellowgreen;
-             border-width: thin; }
+             border-width: thin;
+             background-color: white;
+           }
       #progressBarContainer {
           margin: 0.5em;
           border: thick solid blue;
@@ -31,9 +43,15 @@
     <div class="flex">
       <div class="col">
         <video id="video" width="320" playsinline controls> </video>
+        <img src="" id="waveimage" style="display:none" />
       </div>
       <div class="col">
-        <div>
+        <div class="row">
+          <button id="resetButton" style="width:10em; height:2em;">
+            Loading
+          </button>
+        </div>
+        <div class="row">
           <button id="playButton" style="width:10em; height:10em;">
             Loading
           </button>
@@ -50,20 +68,26 @@
               duration:<text id="durationTime"> durationTime </text>
             </span>
             <span class="textContainer">
-              hit:<text id="hitTime"> hitTime </text>
+              hit:<text id="hitTime"> --:--.- </text>
             </span>
           </div>
         </div>
+        <div style="margin:0.5em; "></div>
+        <div class="row">
+            <span class="textContainer">
+              rehearsal:<text id="rehearsalNumber"> - </text>
+            </span>
+        </div>
         <div style="margin:1em; "> </div>
         <div class="row">
-          (Under construction)
+          <!-- (Under construction) -->
         </div>
       </div>
     </div>
     <div class="flex">
       <div class="row">
         <div id="progressBarContainer">
-          <canvas id="progressBar" width="1000" height="100"> </canvas>
+          <canvas id="progressBar" width="1000" height="120"> </canvas>
         </div>
       </div>
     </div>

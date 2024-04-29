@@ -13,9 +13,10 @@ const context = {
     currentTime: 0.0,
     duration: 0.0,
     hitTime: 0.0,
-};
+}
 
-let config;
+let config;  // 設定データ
+let waveImage = null; // 音声波形の画像データ
 
 const TICK = 100;  // 0.1sec
 
@@ -32,8 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     _main();
 });
 
-(() => {
-    //     const params = new URLSearchParams(url.search);
+(() => {  // 設定の JSON を取得して config に代入する
     const url = new URL(window.location);
     const file = url.searchParams.get("c");
     var xhr = new XMLHttpRequest();
@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function playVideo() {  // 動画 play 状態になった時に呼ぶ
     console.debug("playVideo");
     $("#playButton").innerText = "Pause";
+    $("#playButton").style.backgroundColor = "#AFA";
     currentVideo();
     context.playing = true
 }
@@ -59,6 +60,7 @@ function playVideo() {  // 動画 play 状態になった時に呼ぶ
 function pauseVideo() {  // 動画 pause 状態になった時に呼ぶ
     console.debug("pauseVideo");
     $("#playButton").innerText = "Play";
+    $("#playButton").style.backgroundColor = "";
     currentVideo();
     context.playing = false;
 }
@@ -144,6 +146,10 @@ function makeProgressBase() {
     c.width = width;
     c.height = height;
     const { duration } = context;
+    if (duration <= 0) {
+        console.warn("makeProgressBase, duration <= 0", { duration });
+        return ;
+    }
     const ctx = c.getContext("2d");
     let prevT = -1, prevComment;
     for (const t of config.timeSchedule) {
@@ -187,7 +193,6 @@ function makeProgressBase() {
                 const x = width * prevTT / duration;
                 const y = [(height*2/5), (height/2), (height*3/5)][((i-1)%3)];
                 ctx.fillStyle = "black";
-                console.log({prevRehearsal});
                 ctx.fillText(prevRehearsal, x, y+4);
             }
             prevTT = tt;
@@ -202,22 +207,27 @@ function makeProgressBase() {
 function showProgressBar() {
     const { currentTime, duration, hitTime } = context;
     // console.debug("showProgressBar",  { currentTime, duration, hitTime });
-    if (hitTime > currentTime) {
-        context.hitTime = currentTime;
-        return ;
-    }
+    // if (hitTime > currentTime) {
+    // context.hitTime = currentTime;
+    // }
     const canvas = $("#progressBar");
-    const { width, height } = canvas;
-    const hitX = (hitTime / duration) * width;
-    const currentX = (currentTime / duration) * width;
     const ctx = canvas.getContext("2d");
+    const { width, height } = canvas;
     canvas.width = width;  // all clear
     if (baseImageData) {
         ctx.putImageData(baseImageData, 0, 0);
     }
+    if (waveImage) {
+        console.log(waveImage);
+        ctx.drawImage(waveImage, 0, height*2/3, width, height/3);
+    }
+    //
+    ctx.globalAlpha = 0.6;
+    const hitX = (hitTime / duration) * width;
+    const currentX = (currentTime / duration) * width;
     const grad = ctx.createLinearGradient(0, 0, width, height);
     [ [0.0, "red"], [0.2, "orange"], [0.4, "yellowgreen"],
-      [0.6, "green"], [0.8, "blue"], [1.0, "violet"]
+      [0.6, "lime"], [0.8, "RoyalBlue"], [1.0, "violet"]
     ].forEach(s => grad.addColorStop(s[0], s[1]));
     ctx.fillStyle = grad;
     const x1 = hitX, y1 = height*2/3;
@@ -230,6 +240,7 @@ function showProgressBar() {
 
 function main() {
     $("#video").src = config.file;
+    $("#waveimage").src = config.waveimage;
     /*
      * video event handler
      */
@@ -237,6 +248,10 @@ function main() {
 	if (! context.playing)  {
             $("#video").pause();
             pauseVideo();
+            // Loading 表示を上書き
+            $("#resetButton").innerText = "Reset";
+            $("#resetButton").style.backgroundColor = "#FCB";
+            $("#playButton").innerText = "Play";
 	}
     });
     $("#video").on("durationchange", durationVideo);
@@ -244,8 +259,27 @@ function main() {
     $("#video").on("playing", e => { $("#video").play(); });
     $("#video").on(["pause", "ended"], pauseVideo);
     /*
+     *
+     */
+    $("#waveimage").on("load", e => {
+        waveImage = $("#waveimage");
+        makeProgressBase();
+    });
+    /*
      * botton handler
      */
+    $("#resetButton").on("click", (e) => {
+        console.log("resetButton");
+        context.playing = false;
+        context.currentTime = 0;
+        // duration は初期化しない
+        context.hitTime = 0;
+        $("#video").currentTime = 0;
+        $("#video").pause();
+        currentVideo();
+        rehearsalVideo();
+        showProgressBar();
+    });
     $("#playButton").on("click", (e) => {
         if (context.playing) {
             $("#video").pause();
@@ -272,6 +306,7 @@ function main() {
         const { width, height } = $("#progressBar");
         let { offsetX, offsetY } = (isTouch)? context: e;
         const t = hitProgressBar(offsetX, offsetY, width, height);
+        console.log({ offsetX, offsetY, t })
         hitVideo(t);
         $("#video").currentTime = t;  // seek video
         showProgressBar();
