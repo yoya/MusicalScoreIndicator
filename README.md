@@ -11,6 +11,13 @@ YouTube で音を再生しながら、楽譜の該当する場所を表示する
 ffmpeg -i foo.mp4 -vf scale=320:-1 -acodec copy movie/foo.mp4
 ```
 
+# Make Spectrum
+
+```
+# https://nico-lab.net/create_samples_waves_image_with_ffmpeg/
+% ffmpeg -i input -filter_complex "showwavespic=s=1000x40:colors=orange:scale=2" showwavespic.png
+
+
 # Reference
 
 - https://developers.google.com/youtube/iframe_api_reference?hl=ja
