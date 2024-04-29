@@ -56,6 +56,6 @@ let currentColorHue = 0;
 
 const getNextColor = () => {
     const c = "hsl("+currentColorHue+"deg 90% 90%)"; 
-    currentColorHue = (currentColorHue + 135) % 360;
+    currentColorHue = (currentColorHue + (360/5+11)) % 360;
     return c;
 }
