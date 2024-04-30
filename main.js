@@ -310,16 +310,18 @@ function main() {
      * progress handler
      */
     const pushEvents = [ "mousedown", "mousemove", "mouseup",
-                         "touchstart", "touchmove", "touchend",
-                         "pointermove" ];
+                         "touchstart", "touchmove", "touchend" ];
     $("#progressBarContainer").on(pushEvents, (e) => {
+        e.preventDefault();
         const isMouse = (e.type[0] === "m");
         const isTouch = (e.type[0] === "t");
         const isPointer = (e.type[0] === "p");
-        if (isPointer) {  // touch イベントは offsetX,Y ないので代わりに取得
-            context.offsetX = e.offsetX;
-            context.offsetY = e.offsetY;
-            return ;
+        if (isTouch) {
+            const rect = e.target.getBoundingClientRect()
+            const x = (e.touches[0].clientX - window.pageXOffset - r.left);
+            const y = (e.touches[0].clientY - window.pageYOffset - r.top);
+            context.offsetX = x;
+            context.offsetY = y;
         }
         if (isMouse && (! e.buttons)) return ;
         const { width, height } = $("#progressBar");
