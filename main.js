@@ -226,7 +226,6 @@ function showProgressBar() {
         ctx.putImageData(baseImageData, 0, 0);
     }
     if (waveImage) {
-        console.log(waveImage);
         ctx.drawImage(waveImage, 0, height*2/3, width, height/3);
     }
     //
