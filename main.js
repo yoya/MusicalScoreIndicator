@@ -19,6 +19,7 @@ let config;  // 設定データ
 let waveImage = null; // 音声波形の画像データ
 
 const TICK = 100;  // 0.1sec
+let timerId = null;
 
 let bootFlags = 0;
 
@@ -38,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const file = url.searchParams.get("c");
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = (e) => {
-        console.log({ url, file, xhr, e });
+        // console.debug({ url, file, xhr, e });
         if (xhr.readyState === 4) {
             config = JSON.parse(xhr.responseText);
             bootFlags |= 2;
@@ -49,20 +50,27 @@ document.addEventListener("DOMContentLoaded", () => {
     xhr.send(null);
 })();
 
-function playVideo() {  // 動画 play 状態になった時に呼ぶ
-    console.debug("playVideo");
+function playVideo(e) {  // 動画 play 状態になった時に呼ぶ
+    console.debug("playVideo", {e});
     $("#playButton").innerText = "Pause";
     $("#playButton").style.backgroundColor = "#AFA";
     currentVideo();
     context.playing = true
+    if (! timerId) {
+        timerId = setInterval(tickFunction, TICK);
+    }
 }
 
-function pauseVideo() {  // 動画 pause 状態になった時に呼ぶ
-    console.debug("pauseVideo");
+function pauseVideo(e) {  // 動画 pause 状態になった時に呼ぶ
+    console.debug("pauseVideo", {e});
     $("#playButton").innerText = "Play";
     $("#playButton").style.backgroundColor = "";
     currentVideo();
     context.playing = false;
+    if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+    }
 }
 
 function currentVideo() {  // 現在時刻を追う
@@ -238,6 +246,18 @@ function showProgressBar() {
     ctx.fillRect(x1r, 0, 1, height);
 }
 
+/*
+ * interval process
+ */
+function tickFunction() {
+    // console.debug("tickFunction");
+    if (context.playing) {
+        currentVideo();
+        rehearsalVideo();
+        showProgressBar();
+    }
+}
+
 function main() {
     $("#video").src = config.file;
     $("#waveimage").src = config.waveimage;
@@ -313,14 +333,4 @@ function main() {
         // 待たずに play しても無駄
         setTimeout(() => { $("#video").play(); }, 200);
     });
-    /*
-     * interval process
-     */
-    setInterval(() => {
-        if (context.playing) {
-            currentVideo();
-            rehearsalVideo();
-            showProgressBar();
-        }
-    }, TICK);
 }
