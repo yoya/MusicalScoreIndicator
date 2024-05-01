@@ -254,18 +254,26 @@ function tickFunction() {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
+        // spectrum 画像の補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
+        const diff = $("#spectrum").currentTime - $("#video").currentTime;
+        if (Math.abs(diff) > 0.1) {
+            // console.warn("spectrum - video: ", diff);
+            $("#spectrum").currentTime = $("#video").currentTime;
+        }
     }
 }
 
 function main() {
     $("#video").src = config.file;
     $("#waveimage").src = config.waveimage;
+    $("#spectrum").src = config.spectrum;
     /*
      * video event handler
      */
     $("#video").on("canplaythrough", e => {
 	if (! context.playing)  {
             $("#video").pause();
+            $("#spectrum").pause();
             pauseVideo();
             // Loading 表示を上書き
             $("#resetButton").innerText = "Reset";
@@ -275,8 +283,17 @@ function main() {
     });
     $("#video").on("durationchange", durationVideo);
     $("#video").on("play", playVideo);
-    $("#video").on("playing", e => { $("#video").play(); });
-    $("#video").on(["pause", "ended"], pauseVideo);
+    $("#video").on("playing", e => {
+        $("#video").play();
+        $("#spectrum").play();
+    });
+    $("#video").on("pause", () => {
+        pauseVideo();
+    });
+    $("#video").on("ended", () => {
+        pauseVideo();
+        context.hitTime = 0;
+    });
     /*
      *
      */
@@ -295,6 +312,8 @@ function main() {
         context.hitTime = 0;
         $("#video").currentTime = 0;
         $("#video").pause();
+        $("#spectrum").currentTime = 0;
+        $("#spectrum").pause();
         currentVideo();
         rehearsalVideo();
         showProgressBar();
@@ -302,8 +321,10 @@ function main() {
     $("#playButton").on("click", (e) => {
         if (context.playing) {
             $("#video").pause();
+            $("#spectrum").pause();
         } else {
             $("#video").play();
+            $("#spectrum").play();
         }
     });
     /*
@@ -330,8 +351,12 @@ function main() {
         console.log({ offsetX, offsetY, t })
         hitVideo(t);
         $("#video").currentTime = t;  // seek video
+        $("#spectrum").currentTime = t;  // seek video
         showProgressBar();
         // 待たずに play しても無駄
-        setTimeout(() => { $("#video").play(); }, 200);
+        setTimeout(() => {
+            $("#video").play();
+            $("#spectrum").play();
+        }, 200);
     });
 }
