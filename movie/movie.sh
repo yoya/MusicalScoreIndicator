@@ -12,4 +12,4 @@ zopflipng -y $b-wave.png $b-wave.png
 ffmpeg -y -i $b.mp4 $b.wav ;
 ffmpeg -y -i $b.wav -filter_complex "showcqt=size=448x136:timeclamp=0.5:rate=12:gamma=6:fontcolor=r(1)+g(1)+b(1)" $b-spectrum.gif
 ffmpeg -y -i $b-spectrum.gif -r 12 -pix_fmt yuv420p $b-spectrum.mp4
-rm -f $b-spectrum.wav $b-spectrum.gif
+rm -f $b.wav $b-spectrum.gif
