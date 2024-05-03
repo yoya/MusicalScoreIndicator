@@ -23,6 +23,12 @@ let timerId = null;
 
 let bootFlags = 0;
 
+function getHashParam(p) {
+    const url = new URL(window.location);
+    return url.searchParams.get(p);
+
+}
+
 function _main() {
     if (bootFlags === 3) {
         main();
@@ -35,8 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 (() => {  // 設定の JSON を取得して config に代入する
-    const url = new URL(window.location);
-    const file = url.searchParams.get("c");
+    const file = getHashParam("c");
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = (e) => {
         // console.debug({ url, file, xhr, e });
@@ -279,6 +284,13 @@ function main() {
             $("#resetButton").innerText = "Reset";
             $("#resetButton").style.backgroundColor = "#FCB";
             $("#playButton").innerText = "Play";
+            const ts = getHashParam("t");
+            if (ts) {
+                const t = stringToTime(ts);
+                $("#video").currentTime = t;
+                $("#spectrum").currentTime = t;
+                context.hitTime = t;
+            }
 	}
     });
     $("#video").on("durationchange", durationVideo);

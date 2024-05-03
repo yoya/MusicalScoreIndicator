@@ -14,8 +14,12 @@ ffmpeg -i foo.mp4 -vf scale=320:-1 -acodec copy movie/foo.mp4
 # Make Spectrum
 
 ```
-# https://nico-lab.net/create_samples_waves_image_with_ffmpeg/
-% ffmpeg -i input -filter_complex "showwavespic=s=1000x40:colors=orange:scale=2" showwavespic.png
+% ffmpeg -i music.mp4 -filter_complex "showwavespic=s=1000x40:colors=orange:scale=2" music-wave.png
+% ffmpeg -y -i music.mp4 music.wav
+% ffmpeg -y -i music.wav -filter_complex "showcqt=size=448x136" music-spectrum.gif
+% ffmpeg -y -i music-spectrum.gif -pix_fmt yuv420p music-spectrum.mp4
+% rm -f music-spectrum.wav music-spectrum.gif
+```
 
 
 # Reference
