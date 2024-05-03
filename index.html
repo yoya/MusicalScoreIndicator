@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -11,7 +12,6 @@
           background-color: #f4ffff;
       }
       button {
-          margin: 0.5em;
           border-width: 1px;
           border-radius: 2em;
           box-shadow: 1px 2px 0 gray;
@@ -45,12 +45,12 @@
         <video id="video" width="320" playsinline controls> </video>
       </div>
       <div class="col">
-        <div class="row">
+        <div class="row" style="margin: 0.5em;">
           <button id="resetButton" style="width:10em; height:2em;">
             Loading
           </button>
         </div>
-        <div class="row">
+        <div class="row" style="margin: 0.5em;">
           <button id="playButton" style="width:10em; height:10em;">
             Loading
           </button>
@@ -73,16 +73,27 @@
         </div>
         <div style="margin:0.5em; "></div>
         <div class="flex">
-          <div class="column"  style="width: 6em;">
+          <div class="column" style="width: 6.5em;">
             <div class="row">
               <span class="textContainer">
                 rehearsal:
               </span>
             </div>
-            <div class="row">
+            <div class="row" style="text-align: center;">
               <span class="textContainer">
                 <text id="rehearsalNumber"> --- </text>
               </span>
+            </div>
+            <div class="row" style="margin: 0.1em;">
+              <button id="prevButton" style="width:2em; height:4em;">
+                &lt;&lt;
+              </button>
+              <button id="currButton" style="width:2em; height:4em;">
+                &lt;
+              </button>
+              <button id="nextButton" style="width:2em; height:4em;">
+                &gt;
+              </button>
             </div>
           </div>
           <div class="column">
@@ -96,7 +107,7 @@
     <div class="flex">
       <div class="row">
         <div id="progressBarContainer">
-          <canvas id="progressBar" width="1000" height="120"> </canvas>
+          <canvas id="progressBar" width="1012" height="120"> </canvas>
           <img src="" id="waveimage" style="display:none" />
         </div>
       </div>

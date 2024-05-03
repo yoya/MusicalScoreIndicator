@@ -54,6 +54,12 @@ document.addEventListener("DOMContentLoaded", () => {
     xhr.send(null);
 })();
 
+function setCurrentTime(t) {
+    $("#video").currentTime = t;     // seek video
+    $("#spectrum").currentTime = t;  // seek video
+    context.currentTime = t;
+}
+
 function playVideo(e) {  // 動画 play 状態になった時に呼ぶ
     console.debug("playVideo", {e});
     $("#playButton").innerText = "Pause";
@@ -95,22 +101,25 @@ function hitVideo(hitTime) {  // progressBar で時間を指示された
 }
 
 function getRehearsalIdx(currentTime) {
-    let prevRi = 0;
+    let prevTi = 0, prevRi = 0;
     for (const ti in config.timeSchedule) {
         const t = config.timeSchedule[ti];
         for (const ri in t.rehearsal) {
             const [rehearsal, timeStr] = t.rehearsal[ri];
             const tt = stringToTime(timeStr);
-            if (currentTime <= tt) {
-                return [Number(ti), Number(prevRi)];
+            if (currentTime < tt) {
+                console.debug("getRehearsalIdx middle=> ", {ti, ri, prevTi, prevRi, currentTime, tt});
+                return [Number(prevTi), Number(prevRi)];
             }
-            prevRi = ri;
+            prevTi = ti;  prevRi = ri;
         }
     }
-    return [Number(ti), Number(prevRi)];
+    console.debug("getRehearsalIdx last:=> ", {prevTi, prevRi});
+    return [parseInt(prevTi, 10), parseInt(prevRi, 10)];
 }
 
 function getRehearsalByIdx(ti, ri) {
+    console.debug("getRehearsalByIdx", {ti, ri});
     if (ri < 0) {
         while (ri < 0) {
             ti = ti - 1;
@@ -119,26 +128,34 @@ function getRehearsalByIdx(ti, ri) {
             }
             const t = config.timeSchedule[ti];
             // rehearsal 配列には terminator があるので -1 する
-            ri =  ri + t.rehearsal.length - 1;
+            ri = ri + t.rehearsal.length - 1;
         }
-    } else if ((config.timeSchedule[ti].rehearsal.length -1) < ri) {
-        while ((config.timeSchedule[ti].rehearsal.length -1) < ri) {
+    } else if ((config.timeSchedule[ti].rehearsal.length - 1) <= ri) {
+        while ((config.timeSchedule[ti].rehearsal.length - 1) <= ri) {
             let t = config.timeSchedule[ti];
-            ri =  ri - (t.rehearsal.length - 1);
+            ri = ri - (t.rehearsal.length - 1);  // -1: terminator
             ti = ti + 1;
-            if ((config.timeSchedule.length - 1) < ti) {
+            if (config.timeSchedule.length <= ti) {
                 break;  // failsafe
             }
         }
     }
-    const tlen = config.timeSchedule.length - 1;
+    console.debug("getRehearsalByIdx => ", {ti, ri});
+    if (ti < 0) {
+        const t = config.timeSchedule[0];
+        return t.rehearsal[0];
+    }
+    const tlen = config.timeSchedule.length;
     if (ti >= tlen) {
         const t = config.timeSchedule[tlen-1];
-        const rlen = t.rehearsal.length - 1;
+        const rlen = t.rehearsal.length;
         return t.rehearsal[rlen-1];
     }
     const t = config.timeSchedule[ti];
-    const rlen = t.rehearsal.length - 1;
+    const rlen = t.rehearsal.length;
+    if (ri < 0) {
+        return t.rehearsal[0];
+    }
     if (ri >= rlen) {
         return t.rehearsal[rlen-1];
     }
@@ -153,7 +170,9 @@ function getRehearsalNumber(currentTime) {
 }
 
 function getRehearsalTime(currentTime, offset) {
-    const [ti, ri] = getRehearsalIdx(currentTime);
+    const [ti, ri] = getRehearsalIdx(currentTime)
+    console.trace();
+    console.debug("getRehearsalTime", { ti, ri, offset }, ri + offset);
     const r = getRehearsalByIdx(ti, ri + offset);
     const [rehearsal, timeStr] = r;
     const tt = stringToTime(timeStr);
@@ -161,7 +180,8 @@ function getRehearsalTime(currentTime, offset) {
 }
 
 function rehearsalVideo() {  // 現在時刻から検索
-    const { currentTime } = $("#video");
+    //const { currentTime } = $("#video");
+    const { currentTime } = context;
     const rehearsalNumber = getRehearsalNumber(currentTime);
     $("#rehearsalNumber").innerText = rehearsalNumber;
     context.rehearsalNumber = rehearsalNumber;
@@ -176,7 +196,7 @@ function hitProgressBar(x, y, width, height) {
     case 0:  // setion (movement 等)
         for (const t1 of config.timeSchedule) {
             const tt = stringToTime(t1.rehearsal[0][1]);
-            if (t < tt) {
+            if (t <= tt) {
                 break;
             }
             ret = tt;
@@ -329,8 +349,7 @@ function main() {
             const ts = getHashParam("t");
             if (ts) {
                 const t = stringToTime(ts);
-                $("#video").currentTime = t;
-                $("#spectrum").currentTime = t;
+                setCurrentTime(t);
                 context.hitTime = t;
             }
 	}
@@ -359,14 +378,11 @@ function main() {
      * botton handler
      */
     $("#resetButton").on("click", (e) => {
-        console.log("resetButton");
         context.playing = false;
-        context.currentTime = 0;
         // duration は初期化しない
         context.hitTime = 0;
-        $("#video").currentTime = 0;
+        setCurrentTime(0);
         $("#video").pause();
-        $("#spectrum").currentTime = 0;
         $("#spectrum").pause();
         currentVideo();
         rehearsalVideo();
@@ -380,6 +396,33 @@ function main() {
             $("#video").play();
             $("#spectrum").play();
         }
+    });
+    $("#prevButton").on("click", (e) => {
+        const t = $("#video").currentTime;
+        const rt = getRehearsalTime(t, -1);
+        console.debug("#prevButton", { t, rt });
+        setCurrentTime(rt);
+        currentVideo();
+        rehearsalVideo();
+        showProgressBar();
+    });
+    $("#currButton").on("click", (e) => {
+        const t = $("#video").currentTime;
+        const rt = getRehearsalTime(t, 0);
+        console.debug("#currButton", { t, rt });
+        setCurrentTime(rt);
+        currentVideo();
+        rehearsalVideo();
+        showProgressBar();
+    });
+    $("#nextButton").on("click", (e) => {
+        const t = $("#video").currentTime;
+        const rt = getRehearsalTime(t, 1);
+        console.debug("#nextButton", { t, rt });
+        setCurrentTime(rt);
+        currentVideo();
+        rehearsalVideo();
+        showProgressBar();
     });
     /*
      * progress handler
@@ -404,8 +447,7 @@ function main() {
         const t = hitProgressBar(offsetX, offsetY, width, height);
         console.log({ offsetX, offsetY, t })
         hitVideo(t);
-        $("#video").currentTime = t;  // seek video
-        $("#spectrum").currentTime = t;  // seek video
+        setCurrentTime(t);
         showProgressBar();
         // 待たずに play しても無駄
         setTimeout(() => {
