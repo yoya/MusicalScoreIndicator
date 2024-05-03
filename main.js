@@ -26,7 +26,6 @@ let bootFlags = 0;
 function getHashParam(p) {
     const url = new URL(window.location);
     return url.searchParams.get(p);
-
 }
 
 function _main() {
@@ -95,20 +94,70 @@ function hitVideo(hitTime) {  // progressBar で時間を指示された
     context.hitTime = hitTime;
 }
 
-function getRehearsalNumber(currentTime) {
-    let prevRehearsal = "-";
-    for (const t of config.timeSchedule) {
-        for (const i in t.rehearsal) {
-            const b = t.rehearsal[i];
-            const [rehearsal, timeStr] = b;
+function getRehearsalIdx(currentTime) {
+    let prevRi = 0;
+    for (const ti in config.timeSchedule) {
+        const t = config.timeSchedule[ti];
+        for (const ri in t.rehearsal) {
+            const [rehearsal, timeStr] = t.rehearsal[ri];
             const tt = stringToTime(timeStr);
             if (currentTime <= tt) {
-                return prevRehearsal;
+                return [Number(ti), Number(prevRi)];
             }
-            prevRehearsal = rehearsal;
+            prevRi = ri;
         }
     }
-    return prevRehearsal;  // XXX
+    return [Number(ti), Number(prevRi)];
+}
+
+function getRehearsalByIdx(ti, ri) {
+    if (ri < 0) {
+        while (ri < 0) {
+            ti = ti - 1;
+            if (ti < 0) {
+                break;  // failsafe
+            }
+            const t = config.timeSchedule[ti];
+            // rehearsal 配列には terminator があるので -1 する
+            ri =  ri + t.rehearsal.length - 1;
+        }
+    } else if ((config.timeSchedule[ti].rehearsal.length -1) < ri) {
+        while ((config.timeSchedule[ti].rehearsal.length -1) < ri) {
+            let t = config.timeSchedule[ti];
+            ri =  ri - (t.rehearsal.length - 1);
+            ti = ti + 1;
+            if ((config.timeSchedule.length - 1) < ti) {
+                break;  // failsafe
+            }
+        }
+    }
+    const tlen = config.timeSchedule.length - 1;
+    if (ti >= tlen) {
+        const t = config.timeSchedule[tlen-1];
+        const rlen = t.rehearsal.length - 1;
+        return t.rehearsal[rlen-1];
+    }
+    const t = config.timeSchedule[ti];
+    const rlen = t.rehearsal.length - 1;
+    if (ri >= rlen) {
+        return t.rehearsal[rlen-1];
+    }
+    return t.rehearsal[ri];
+}
+
+function getRehearsalNumber(currentTime) {
+    const [ti, ri] = getRehearsalIdx(currentTime);
+    const r = getRehearsalByIdx(ti, ri);
+    const [rehearsal, timeStr] = r;
+    return rehearsal;
+}
+
+function getRehearsalTime(currentTime, offset) {
+    const [ti, ri] = getRehearsalIdx(currentTime);
+    const r = getRehearsalByIdx(ti, ri + offset);
+    const [rehearsal, timeStr] = r;
+    const tt = stringToTime(timeStr);
+    return tt;
 }
 
 function rehearsalVideo() {  // 現在時刻から検索
@@ -121,9 +170,10 @@ function hitProgressBar(x, y, width, height) {
     const { duration } = context;
     const t = duration * (x / width);
     let ret = 0;
+    // 触る場所によってキリの良い場所に移動
     const choice = (y * 3 / height) | 0;
     switch (choice) {
-    case 0:
+    case 0:  // setion (movement 等)
         for (const t1 of config.timeSchedule) {
             const tt = stringToTime(t1.rehearsal[0][1]);
             if (t < tt) {
@@ -132,18 +182,10 @@ function hitProgressBar(x, y, width, height) {
             ret = tt;
         }
         break;
-    case 1:
-        for (const t1 of config.timeSchedule) {
-            for (const b of t1.rehearsal) {
-                const tt = stringToTime(b[1]);
-                if (t < tt) {
-                    break;
-                }
-                ret = tt;
-            }
-        }
+    case 1:  // rehearsal
+        ret = getRehearsalTime(t, 0);
         break;
-    case 2:
+    case 2:  // time
     default:
         ret = t;
         break;
