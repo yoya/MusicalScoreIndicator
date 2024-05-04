@@ -1,7 +1,7 @@
 {
-    "file": "movie/daphchlo-no1.mp4",
-    "waveimage": "movie/daphchlo-no1-wave.png",
-    "spectrum": "movie/daphchlo-no1-spectrum.mp4",
+    "file": "movie/sample.mp4",
+    "waveimage": "movie/sample-wave.png",
+    "spectrum": "movie/sample-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1 movement", "rehearsal": [
             [70, "4s"], [71 ,"45s"], [72, "1m05s"], [73, "1m21s"],
