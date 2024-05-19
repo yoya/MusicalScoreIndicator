@@ -17,7 +17,6 @@ sample.json を参考にして下さい。
 % sh movie.sh sample  # sample.mp4
 => generate sample-wave.png, sample-spectrum.mp4
 ```
+# usage
 
-# Reference
-
-- https://developers.google.com/youtube/iframe_api_reference?hl=ja
+http://〜/MusicalScoreIndicator/play.html?c=sample.json
