@@ -435,7 +435,7 @@ function main() {
         const isTouch = (e.type[0] === "t");
         const isPointer = (e.type[0] === "p");
         if (isTouch) {
-            const rect = e.target.getBoundingClientRect()
+            const r = e.target.getBoundingClientRect()
             const x = (e.touches[0].clientX - window.pageXOffset - r.left);
             const y = (e.touches[0].clientY - window.pageYOffset - r.top);
             context.offsetX = x;
