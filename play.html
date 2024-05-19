@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8"/>
+    <style>
+      .flex { display: flex; }
+      .col { flex-direction: column; }
+      .row { flex-direction: row; }
+      .left { float: left; }
+      body {
+          background-color: #f4ffff;
+      }
+      button {
+          border-width: 1px;
+          border-radius: 2em;
+          box-shadow: 1px 2px 0 gray;
+      }
+      button:active {
+          box-shadow: none;
+          transform: translateY(5px);
+      }
+      textContainer {
+          margin: 0.5em;
+      }
+      text { padding: 0.2em;
+             border: thick solid yellowgreen;
+             border-width: thin;
+             background-color: white;
+           }
+      #progressBarContainer {
+          margin: 0.5em;
+          border: thick solid blue;
+          border-width: thin;
+          background-color: silver;
+      }
+      #progressBar {
+          margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex">
+      <div class="col">
+        <video id="video" width="320" playsinline controls> </video>
+      </div>
+      <div class="col">
+        <div class="row" style="margin: 0.5em;">
+          <button id="resetButton" style="width:10em; height:2em;">
+            Loading
+          </button>
+        </div>
+        <div class="row" style="margin: 0.5em;">
+          <button id="playButton" style="width:10em; height:10em;">
+            Loading
+          </button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="row">
+          <div style="margin:1em; "></div>
+          <div>
+            <span class="textContainer">
+              current:<text id="currentTime"> currentTime </text>
+            </span>
+            <span class="textContainer">
+              duration:<text id="durationTime"> durationTime </text>
+            </span>
+            <span class="textContainer">
+              hit:<text id="hitTime"> --:--.- </text>
+            </span>
+          </div>
+        </div>
+        <div style="margin:0.5em; "></div>
+        <div class="flex">
+          <div class="column" style="width: 6.5em;">
+            <div class="row">
+              <span class="textContainer">
+                rehearsal:
+              </span>
+            </div>
+            <div class="row" style="text-align: center;">
+              <span class="textContainer">
+                <text id="rehearsalNumber"> --- </text>
+              </span>
+            </div>
+            <div class="row" style="margin: 0.1em;">
+              <button id="prevButton" style="width:2em; height:4em;">
+                &lt;&lt;
+              </button>
+              <button id="currButton" style="width:2em; height:4em;">
+                &lt;
+              </button>
+              <button id="nextButton" style="width:2em; height:4em;">
+                &gt;
+              </button>
+            </div>
+          </div>
+          <div class="column">
+            <div>
+                <video id="spectrum" width="448" height="136" playsinline>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex">
+      <div class="row">
+        <div id="progressBarContainer">
+          <canvas id="progressBar" width="1012" height="120"> </canvas>
+          <img src="" id="waveimage" style="display:none" />
+        </div>
+      </div>
+    </div>
+    <script src="utils.js"> </script>
+    <script src="main.js"> </script>
+  </body>
+</html>
