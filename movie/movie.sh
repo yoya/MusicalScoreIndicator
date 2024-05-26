@@ -1,5 +1,5 @@
 #! /bin/bash
-# Usage: sh setup.sh foo  # foo.mp4 setup
+# Usage: sh movie.sh foo  # foo.mp4 movie setup
 # require) ffmpeg, ImageMagick, zopflipng
 
 set -euo pipefail
