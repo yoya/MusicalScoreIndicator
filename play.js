@@ -61,18 +61,18 @@ function setCurrentTime(t) {
 }
 
 function playVideo(e) {  // 動画 play 状態になった時に呼ぶ
-    console.debug("playVideo", {e});
+    // console.debug("playVideo", {e});
     $("#playButton").innerText = "Pause";
     $("#playButton").style.backgroundColor = "#AFA";
     currentVideo();
-    context.playing = true
+    context.playing = true;
     if (! timerId) {
         timerId = setInterval(tickFunction, TICK);
     }
 }
 
 function pauseVideo(e) {  // 動画 pause 状態になった時に呼ぶ
-    console.debug("pauseVideo", {e});
+    // console.debug("pauseVideo", {e});
     $("#playButton").innerText = "Play";
     $("#playButton").style.backgroundColor = "";
     currentVideo();
@@ -108,7 +108,6 @@ function getRehearsalIdx(currentTime) {
             const [rehearsal, timeStr] = t.rehearsal[ri];
             const tt = stringToTime(timeStr);
             if (currentTime < tt) {
-                console.debug("getRehearsalIdx middle=> ", {ti, ri, prevTi, prevRi, currentTime, tt});
                 return [Number(prevTi), Number(prevRi)];
             }
             prevTi = ti;  prevRi = ri;
@@ -119,7 +118,7 @@ function getRehearsalIdx(currentTime) {
 }
 
 function getRehearsalByIdx(ti, ri) {
-    console.debug("getRehearsalByIdx", {ti, ri});
+    // console.debug("getRehearsalByIdx", {ti, ri});
     if (ri < 0) {
         while (ri < 0) {
             ti = ti - 1;
@@ -140,7 +139,7 @@ function getRehearsalByIdx(ti, ri) {
             }
         }
     }
-    console.debug("getRehearsalByIdx => ", {ti, ri});
+    // console.debug("getRehearsalByIdx => ", {ti, ri});
     if (ti < 0) {
         const t = config.timeSchedule[0];
         return t.rehearsal[0];
