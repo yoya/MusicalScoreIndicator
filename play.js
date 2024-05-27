@@ -345,7 +345,6 @@ function main() {
         }
         $("#video").pause();
         $("#spectrum").pause();
-        console.log("canplaythrough => pauseVideo");
         pauseVideo();
         // Loading 表示を上書き
         $("#resetButton").innerText = "Reset";
