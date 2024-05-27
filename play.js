@@ -330,6 +330,9 @@ function tickFunction() {
 }
 
 function main() {
+    const ts = getHashParam("t");
+    const startTime = (ts)? stringToTime(ts): 0;
+    let startTimeDone = (startTime)? false: true;
     $("#video").src = config.file;
     $("#waveimage").src = config.waveimage;
     $("#spectrum").src = config.spectrum;
@@ -337,21 +340,22 @@ function main() {
      * video event handler
      */
     $("#video").on("canplaythrough", e => {
-	if (! context.playing)  {
-            $("#video").pause();
-            $("#spectrum").pause();
-            pauseVideo();
-            // Loading 表示を上書き
-            $("#resetButton").innerText = "Reset";
-            $("#resetButton").style.backgroundColor = "#FCB";
-            $("#playButton").innerText = "Play";
-            const ts = getHashParam("t");
-            if (ts) {
-                const t = stringToTime(ts);
-                setCurrentTime(t);
-                context.hitTime = t;
-            }
-	}
+	if (context.playing)  {
+            return ;
+        }
+        $("#video").pause();
+        $("#spectrum").pause();
+        console.log("canplaythrough => pauseVideo");
+        pauseVideo();
+        // Loading 表示を上書き
+        $("#resetButton").innerText = "Reset";
+        $("#resetButton").style.backgroundColor = "#FCB";
+        $("#playButton").innerText = "Play";
+        if (! startTimeDone) {  // t パラメータによる開始位置設定は一度だけ
+            setCurrentTime(startTime);
+            context.hitTime = startTime;
+            startTimeDone = true;
+        }
     });
     $("#video").on("durationchange", durationVideo);
     $("#video").on("play", playVideo);
