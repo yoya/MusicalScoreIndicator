@@ -1,0 +1,24 @@
+<html>
+  <body>
+    <div>
+      <h1> VideoFile Test </h1>
+      <hr>
+      <video id="video" playsinline controls> </video>
+    </div>
+    <script src="utils.js"> </script>
+    <script>
+      "use strict";
+      const body = $("body");
+      const video = $("video");
+      const cancelEvent = (e) =>  { e.preventDefault(); e.stopPropagation() }
+      body.on(["dragover", "dragenter"] , cancelEvent)
+      body.on("drop"     , (e) => {
+          cancelEvent(e)
+          video.src = URL.createObjectURL(e.dataTransfer.files[0])
+      });
+      video.on(["play", "playing", "pause", "ended", "durationchange", "canplaythrough"], (e) => {
+          console.log(e.type, {e})
+      })
+    </script>
+  </body>
+</html>
