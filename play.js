@@ -372,7 +372,10 @@ function main() {
      */
     $("#waveimage").on("load", e => {
         waveImage = $("#waveimage");
-        makeProgressBase();
+        // 万が一、video load & duration 取得より image load が遅い時用
+        if (context.duration) {
+            makeProgressBase();
+        }
     });
     /*
      * botton handler
