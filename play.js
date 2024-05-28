@@ -170,8 +170,6 @@ function getRehearsalNumber(currentTime) {
 
 function getRehearsalTime(currentTime, offset) {
     const [ti, ri] = getRehearsalIdx(currentTime)
-    console.trace();
-    console.debug("getRehearsalTime", { ti, ri, offset }, ri + offset);
     const r = getRehearsalByIdx(ti, ri + offset);
     const [rehearsal, timeStr] = r;
     const tt = stringToTime(timeStr);
