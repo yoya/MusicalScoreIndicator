@@ -362,6 +362,7 @@ function main() {
     });
     $("#video").on("pause", () => {
         pauseVideo();
+        $("#spectrum").pause();
     });
     $("#video").on("ended", () => {
         pauseVideo();
