@@ -384,8 +384,8 @@ function main() {
     $("#resetButton").on("click", (e) => {
         context.playing = false;
         // duration は初期化しない
-        context.hitTime = 0;
-        setCurrentTime(0);
+        context.hitTime = startTime;
+        setCurrentTime(startTime);
         $("#video").pause();
         $("#spectrum").pause();
         currentVideo();
