@@ -39,19 +39,68 @@ document.addEventListener("DOMContentLoaded", () => {
     _main();
 });
 
-(() => {  // 設定の JSON を取得して config に代入する
-    const file = getHashParam("c");
+function loadFile(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = (e) => {
         // console.debug({ url, file, xhr, e });
         if (xhr.readyState === 4) {
-            config = JSON.parse(xhr.responseText);
+            const resp = JSON.parse(xhr.responseText);
+            callback(resp)
+        }
+    }
+    xhr.open("GET", url, true); // async:true
+    xhr.send(null);
+}
+
+function timeScheduleInterpolate(schedule, refSched) {
+    for (const idx in schedule) {
+        const reha = schedule[idx].rehearsal
+        const refReha = refSched[idx].rehearsal;
+        let i = 0;
+        let startTime, startTimeRef;
+        let refQueue = [];
+        for (const r of refReha) {
+            const timeRef = stringToTime(r[1])
+            if (reha[i][0] == r[0]) {
+                const time = stringToTime(reha[i][1])
+                if (refQueue.length) {
+                    const timeScale = (time - startTime) / (timeRef - startTimeRef)
+                    for (const rq of refQueue) {
+                        const refNo = rq[0];
+                        const refTm = stringToTime(rq[1])
+                        const t = (refTm - startTimeRef) * timeScale + startTime;
+                        reha.splice(i, 0, [refNo, timeToString(t)])
+                        i++;
+                    }
+                    refQueue = [];
+                }
+                startTime = time;
+                startTimeRef = timeRef;
+                i++;
+            } else {
+                refQueue.push(r)  // 欠けている練習番号
+            }
+        }
+    }
+}
+
+(() => {  // 設定の JSON を取得して config に代入する
+    const url = getHashParam("c");
+    loadFile(url, (resp) => {
+        config = resp
+        const refUrl = config.reference;
+        if (refUrl) {
+            // reference がある場合、timeSchedule の補間に使う
+            loadFile(refUrl, (r) => {
+                timeScheduleInterpolate(config.timeSchedule, r.timeSchedule);
+                bootFlags |= 2;
+                _main();
+            });
+        } else {
             bootFlags |= 2;
             _main();
         }
-    }
-    xhr.open("GET", file, true); // async:true
-    xhr.send(null);
+    });
 })();
 
 function setCurrentTime(t) {
