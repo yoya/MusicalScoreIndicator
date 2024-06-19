@@ -69,7 +69,7 @@ function timeScheduleInterpolate(schedule, refSched) {
                         const refNo = rq[0];
                         const refTm = stringToTime(rq[1])
                         const t = (refTm - startTimeRef) * timeScale + startTime;
-                        reha.splice(i, 0, [refNo, timeToString(t)])
+                        reha.splice(i, 0, [refNo, timeToString(t), true])
                         i++;
                     }
                     refQueue = [];
@@ -292,8 +292,9 @@ function makeProgressBase() {
     }
     for (const t of config.timeSchedule) {
         let prevTT = -1;
+        let prevInterp = false;
         for (const i in t.rehearsal) {
-            const [rehearsal, timeStr] = t.rehearsal[i];
+            const [rehearsal, timeStr, interp] = t.rehearsal[i];
             const tt = stringToTime(timeStr);
             if (0 <= prevTT) {
                 const x = width * prevTT / duration;
@@ -302,7 +303,13 @@ function makeProgressBase() {
                 const h = height/3/3;
                 ctx.fillStyle = getNextColor();
                 ctx.fillRect(x, y, w, h);
+                console.debug({rehearsal, timeStr, interp});
+                if (! prevInterp) {
+                    ctx.fillStyle = "hotpink";
+                    ctx.fillRect(x+0.5, y+0.5, 3.5, 2.5);
+                }
             }
+            prevInterp = interp;
             prevTT = tt;
         }
         let  prevRehearsal;
