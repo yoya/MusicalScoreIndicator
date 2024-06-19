@@ -321,7 +321,7 @@ function makeProgressBase() {
                 const x = width * prevTT / duration;
                 const y = [(height*2/5), (height/2), (height*3/5)][((i-1)%3)];
                 ctx.fillStyle = "black";
-                ctx.fillText(prevRehearsal, x, y+4);
+                ctx.fillText(prevRehearsal, x, y+5);
             }
             prevTT = tt;
             prevRehearsal = rehearsal;
