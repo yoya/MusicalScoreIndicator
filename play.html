@@ -15,6 +15,7 @@
           border-width: 1px;
           border-radius: 2em;
           box-shadow: 1px 2px 0 gray;
+          text-align: center;
       }
       button:active {
           box-shadow: none;
@@ -29,7 +30,7 @@
              background-color: white;
            }
       #progressBarContainer {
-          margin: 0.5em;
+          margin: 0.2em;
           border: thick solid blue;
           border-width: thin;
           background-color: silver;
@@ -45,20 +46,42 @@
         <video id="video" width="320" height="180" playsinline style="object-fit: cover;"> </video>
       </div>
       <div class="col">
-        <div class="row" style="margin: 0.5em;">
+        <div class="row" style="margin: 0.2em 0.6em 0.8em 0.4em;">
           <button id="resetButton" style="width:10em; height:2em;">
             Loading
           </button>
         </div>
-        <div class="row" style="margin: 0.5em;">
+        <div class="row" style="margin: 0.2em 0.6em 0.6em 0.4em;">
           <button id="playButton" style="width:10em; height:10em;">
             Loading
           </button>
         </div>
       </div>
       <div class="col">
-        <div class="row">
-          <div style="margin:1em; "></div>
+        <div class="row" style="margin: 0.5em;">
+          <span class="textContainer">
+             rehearsal:
+          </span>
+        </div>
+        <div class="row" style="text-align: center; margin: 0.5em;">
+          <span class="textContainer">
+            <text id="rehearsalNumber"> --- </text>
+          </span>
+        </div>
+        <div class="row" style="margin: 0.1em;">
+          <button id="prevButton" style="width:2em; height:4em;">
+            &lt;&lt;
+          </button>
+          <button id="currButton" style="width:2em; height:4em;">
+             &lt;
+          </button>
+          <button id="nextButton" style="width:2em; height:4em;">
+            &gt;
+          </button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="row" style="margin: 0.5em;">
           <div>
             <span class="textContainer">
               current:<text id="currentTime"> currentTime </text>
@@ -71,35 +94,9 @@
             </span>
           </div>
         </div>
-        <div style="margin:0.5em; "></div>
-        <div class="flex">
-          <div class="column" style="width: 6.5em;">
-            <div class="row">
-              <span class="textContainer">
-                rehearsal:
-              </span>
-            </div>
-            <div class="row" style="text-align: center;">
-              <span class="textContainer">
-                <text id="rehearsalNumber"> --- </text>
-              </span>
-            </div>
-            <div class="row" style="margin: 0.1em;">
-              <button id="prevButton" style="width:2em; height:4em;">
-                &lt;&lt;
-              </button>
-              <button id="currButton" style="width:2em; height:4em;">
-                &lt;
-              </button>
-              <button id="nextButton" style="width:2em; height:4em;">
-                &gt;
-              </button>
-            </div>
-          </div>
-          <div class="column">
-            <div>
-                <video id="spectrum" width="448" height="136" playsinline>
-            </div>
+        <div class="row" style="margin: 0.5em;">
+          <div>
+            <video id="spectrum" width="448" height="136" playsinline>
           </div>
         </div>
       </div>
