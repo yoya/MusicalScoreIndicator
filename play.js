@@ -487,23 +487,12 @@ function main() {
     /*
      * progress handler
      */
-    const pushEvents = [ "mousedown", "mousemove", "mouseup",
-                         "touchstart", "touchmove", "touchend" ];
+    const pushEvents = [ "pointerdown" ];
     $("#progressBarContainer").on(pushEvents, (e) => {
         e.preventDefault();
-        const isMouse = (e.type[0] === "m");
-        const isTouch = (e.type[0] === "t");
-        const isPointer = (e.type[0] === "p");
-        if (isTouch) {
-            const r = e.target.getBoundingClientRect()
-            const x = (e.touches[0].clientX - window.pageXOffset - r.left);
-            const y = (e.touches[0].clientY - window.pageYOffset - r.top);
-            context.offsetX = x;
-            context.offsetY = y;
-        }
-        if (isMouse && (! e.buttons)) return ;
+        if (! e.buttons) { return ; }
         const { width, height } = $("#progressBar");
-        let { offsetX, offsetY } = (isTouch)? context: e;
+        let { offsetX, offsetY } = e;
         const t = hitProgressBar(offsetX, offsetY, width, height);
         console.log({ offsetX, offsetY, t })
         hitVideo(t);
