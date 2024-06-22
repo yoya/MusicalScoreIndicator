@@ -303,7 +303,6 @@ function makeProgressBase() {
                 const h = height/3/3;
                 ctx.fillStyle = getNextColor();
                 ctx.fillRect(x, y, w, h);
-                console.debug({rehearsal, timeStr, interp});
                 if (! prevInterp) {
                     ctx.fillStyle = "hotpink";
                     ctx.fillRect(x+0.5, y+0.5, 3.5, 2.5);
