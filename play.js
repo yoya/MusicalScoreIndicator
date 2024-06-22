@@ -143,6 +143,7 @@ function durationVideo() {  // duration が確定する時
     context.duration = duration;
     makeProgressBase();
     showProgressBar();
+    showRehearsalProgressBar();
 }
 function hitVideo(hitTime) {  // progressBar で時間を指示された
     $("#hitTime").innerText = timeToString(hitTime);
@@ -280,7 +281,6 @@ function makeProgressBase() {
             const x = width * prevT / duration;
             const w = width * (t2 - prevT) / duration;
             const h = height/3;
-            ctx.fillStyle = getNextColor();
             ctx.strokeStyle = "gray";
             ctx.fillRect(x, 0, w, h);
             ctx.fillStyle = "black";
@@ -364,6 +364,27 @@ function showProgressBar() {
     ctx.fillRect(x1r, 0, 1, height);
 }
 
+function showRehearsalProgressBar() {
+    const t = $("#video").currentTime;
+    const curr = getRehearsalTime(t, 0);
+    const next = getRehearsalTime(t, 1);
+    const canvas = $("#rehearsalProgressBar");
+    const ctx = canvas.getContext("2d");
+    const { width, height } = canvas;
+    canvas.width = width;  // all clear
+    const progress = (t - curr) / (next - curr);
+    const x = progress * width;
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    grad.addColorStop(0, "magenta");
+    grad.addColorStop(0.3, "orange");
+    grad.addColorStop(0.5, "yellow");
+    grad.addColorStop(0.8, "green");
+    grad.addColorStop(1, "cyan");
+    ctx.fillStyle = grad;
+    ctx.globalAlpha = 0.8;
+    ctx.fillRect(0, 0, x, height);
+}
+
 /*
  * interval process
  */
@@ -373,6 +394,7 @@ function tickFunction() {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
+        showRehearsalProgressBar();
         // spectrum 画像の補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
         const diff = $("#spectrum").currentTime - $("#video").currentTime;
         if (Math.abs(diff) > 0.1) {
@@ -464,6 +486,7 @@ function main() {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
+        showRehearsalProgressBar();
     });
     $("#currButton").on("click", (e) => {
         const t = $("#video").currentTime;
@@ -473,6 +496,7 @@ function main() {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
+        showRehearsalProgressBar();
     });
     $("#nextButton").on("click", (e) => {
         const t = $("#video").currentTime;
@@ -482,6 +506,7 @@ function main() {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
+        showRehearsalProgressBar();
     });
     /*
      * progress handler
@@ -497,6 +522,7 @@ function main() {
         hitVideo(t);
         setCurrentTime(t);
         showProgressBar();
+        showRehearsalProgressBar();
         // 待たずに play しても無駄
         setTimeout(() => {
             $("#video").play();
