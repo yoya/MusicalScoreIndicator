@@ -274,10 +274,11 @@ function makeProgressBase() {
     }
     const ctx = c.getContext("2d");
     let prevT = -1, prevComment;
-    for (const t of config.timeSchedule) {
+    for (const i in config.timeSchedule) {
+        const t = config.timeSchedule[i];
         const t2 = stringToTime(t.rehearsal[0][1]);
         if (0 <= prevT) {
-            ctx.fillStyle = getNextColor();
+            ctx.fillStyle = getScheduleColor(i);
             const x = width * prevT / duration;
             const w = width * (t2 - prevT) / duration;
             const h = height/3;
@@ -301,7 +302,7 @@ function makeProgressBase() {
                 const w = width * (tt - prevTT) / duration;
                 const y = height/3 + ((i-1)%3) * height / 9;
                 const h = height/3/3;
-                ctx.fillStyle = getNextColor();
+                ctx.fillStyle = getRehearsalColor(rehearsal)
                 ctx.fillRect(x, y, w, h);
                 if (! prevInterp) {
                     ctx.fillStyle = "hotpink";

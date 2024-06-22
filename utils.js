@@ -59,3 +59,21 @@ const getNextColor = () => {
     currentColorHue = (currentColorHue + (360/5+11)) % 360;
     return c;
 }
+
+const getScheduleColor = (r) => {
+    let hue = 0;
+    for (let i = 0; i < r; i++) {
+        hue = (hue + (360/5+11)) % 360;
+    }
+    const color = "hsl("+hue+"deg 80% 80%)";
+    return color;
+}
+
+const getRehearsalColor = (r) => {
+    let hue = 0;
+    for (let i = 0; i < r; i++) {
+        hue = (hue + (360/5+11)) % 360;
+    }
+    const color = "hsl("+hue+"deg 90% 90%)";
+    return color;
+}
