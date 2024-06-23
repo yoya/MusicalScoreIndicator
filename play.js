@@ -282,6 +282,9 @@ function makeProgressBase() {
         return ;
     }
     const ctx = c.getContext("2d");
+    // 下部の1/3を塗りつぶす
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, height*2/3, width, height/3);
     let prevT = -1, prevComment;
     for (const i in config.timeSchedule) {
         const t = config.timeSchedule[i];
@@ -312,11 +315,20 @@ function makeProgressBase() {
                 const w = width * (tt - prevTT) / duration;
                 const y = height/3 + ((i-1)%3) * height / 9;
                 const h = height/3/3;
-                ctx.fillStyle = getRehearsalColor(prevRehearsal)
+                ctx.fillStyle = getRehearsalColor(prevRehearsal);
                 ctx.fillRect(x, y, w, h);
                 if (! prevInterp) {
+                    // (補間でなく)、明示的に時間を指定している場合マーク。
                     ctx.fillStyle = "hotpink";
                     ctx.fillRect(x+0.5, y+0.5, 3.5, 2.5);
+                }
+                // 下の波形の方にもマーク
+                if (! prevInterp) {
+                    ctx.fillStyle = "hotpink"
+                    ctx.fillRect(x-1, (height*2/3)+0, 1, height/10);
+                } else {
+                    //  ctx.fillStyle = "gray";
+                    //  ctx.fillRect(x-1, (height*2/3)+0, 1, height/20);
                 }
             }
             prevTT = tt;
@@ -337,8 +349,6 @@ function makeProgressBase() {
             prevTT = tt;
             prevRehearsal = rehearsal;
         }
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, height*2/3, width, height/3);
     }
     baseImageData = ctx.getImageData(0, 0, width, height);
 }
