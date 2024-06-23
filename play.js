@@ -18,8 +18,10 @@ const context = {
 let config;  // 設定データ
 let waveImage = null; // 音声波形の画像データ
 
-const TICK = 100;  // 0.1sec
+const TICK  = 1000/10;  // 10 fps (0.1 sec)
+const TICK2 = 1000/24;  // 24 fps (0.041666... sec)
 let timerId = null;
+let timerId2 = null;
 
 let bootFlags = 0;
 
@@ -118,6 +120,9 @@ function playVideo(e) {  // 動画 play 状態になった時に呼ぶ
     if (! timerId) {
         timerId = setInterval(tickFunction, TICK);
     }
+    if (! timerId2) {
+        timerId2 = setInterval(tickFunction2, TICK2);
+    }
 }
 
 function pauseVideo(e) {  // 動画 pause 状態になった時に呼ぶ
@@ -129,6 +134,10 @@ function pauseVideo(e) {  // 動画 pause 状態になった時に呼ぶ
     if (timerId) {
         clearInterval(timerId);
         timerId = null;
+    }
+    if (timerId2) {
+        clearInterval(timerId2);
+        timerId2 = null;
     }
 }
 
@@ -411,7 +420,6 @@ function tickFunction() {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
-        showRehearsalProgressBar();
         // spectrum 画像の補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
         const diff = $("#spectrum").currentTime - $("#video").currentTime;
         if (Math.abs(diff) > 0.1) {
@@ -419,6 +427,10 @@ function tickFunction() {
             $("#spectrum").currentTime = $("#video").currentTime;
         }
     }
+}
+
+function tickFunction2() {
+    showRehearsalProgressBar();
 }
 
 function main() {
