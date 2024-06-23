@@ -371,21 +371,35 @@ function showRehearsalProgressBar() {
     const t = $("#video").currentTime;
     const curr = getRehearsalTime(t, 0);
     const next = getRehearsalTime(t, 1);
+    const [ti, ri] = getRehearsalIdx(curr);
+    const [ti2, ri2] = getRehearsalIdx(next);
+    const [rehearsal, timeStr, interp] = getRehearsalByIdx(ti, ri);
+    const [rehearsal2, timeStr2, interp2] = getRehearsalByIdx(ti2, ri2);
     const canvas = $("#rehearsalProgressBar");
     const ctx = canvas.getContext("2d");
     const { width, height } = canvas;
     canvas.width = width;  // all clear
     const progress = (t - curr) / (next - curr);
-    const x = progress * width;
+    const [x1, x2] = [progress * width, width];
+    const [y1, y2] = [height / 4, height /4 * (4-2)];
+    const reheColor  = getRehearsalColor(rehearsal);
+    const reheColor2 = getRehearsalColor(rehearsal2);
     const grad = ctx.createLinearGradient(0, 0, width, height);
-    grad.addColorStop(0, "magenta");
-    grad.addColorStop(0.3, "orange");
-    grad.addColorStop(0.5, "yellow");
-    grad.addColorStop(0.8, "green");
-    grad.addColorStop(1, "cyan");
+    grad.addColorStop(0.0, reheColor);
+    grad.addColorStop(0.5, reheColor);
+    grad.addColorStop(0.9, reheColor2);
+    grad.addColorStop(1.0, reheColor2);
     ctx.fillStyle = grad;
-    ctx.globalAlpha = 0.8;
-    ctx.fillRect(0, 0, x, height);
+    ctx.globalAlpha = 1.0;
+    ctx.fillRect(x1, y1, x2, y2);
+    if (! interp) {
+        ctx.fillStyle = "hotpink";
+        ctx.fillRect(0, 0, 5, 5);
+    }
+    if (! interp2) {
+        ctx.fillStyle = "hotpink";
+        ctx.fillRect(width-5, 0, 5, 5);
+    }
 }
 
 /*
