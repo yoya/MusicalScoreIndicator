@@ -268,6 +268,14 @@ function hitProgressBar(x, y, width, height) {
     }
     return ret;
 }
+function hitRehearsalProgressBar(x, y, width, height) {
+    const t = $("#video").currentTime;
+    const curr = getRehearsalTime(t, 0);
+    const next = getRehearsalTime(t, 1);
+    const r = x / width;
+    const ret = curr + (next - curr) * r;
+    return ret;
+}
 
 
 let baseImageData = null;
@@ -440,7 +448,9 @@ function tickFunction() {
 }
 
 function tickFunction2() {
-    showRehearsalProgressBar();
+    if (context.playing) {
+        showRehearsalProgressBar();
+    }
 }
 
 function main() {
@@ -550,14 +560,28 @@ function main() {
     /*
      * progress handler
      */
-    const pushEvents = [ "pointerdown" ];
-    $("#progressBarContainer").on(pushEvents, (e) => {
+    $("#progressBarContainer").on("pointerdown", (e) => {
         e.preventDefault();
         if (! e.buttons) { return ; }
         const { width, height } = $("#progressBar");
         let { offsetX, offsetY } = e;
         const t = hitProgressBar(offsetX, offsetY, width, height);
-        console.log({ offsetX, offsetY, t })
+        hitVideo(t);
+        setCurrentTime(t);
+        showProgressBar();
+        showRehearsalProgressBar();
+        // 待たずに play しても無駄
+        setTimeout(() => {
+            $("#video").play();
+            $("#spectrum").play();
+        }, 200);
+    });
+    $("#rehearsalProgressBarContainer").on("pointerdown", (e) => {
+        e.preventDefault();
+        if (! e.buttons) { return ; }
+        const { width, height } = $("#rehearsalProgressBar");
+        let { offsetX, offsetY } = e;
+        const t = hitRehearsalProgressBar(offsetX, offsetY, width, height);
         hitVideo(t);
         setCurrentTime(t);
         showProgressBar();
