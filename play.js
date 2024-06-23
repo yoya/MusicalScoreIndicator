@@ -332,11 +332,16 @@ function makeProgressBase() {
                 }
                 // 下の波形の方にもマーク
                 if (! prevInterp) {
-                    ctx.fillStyle = "hotpink"
-                    ctx.fillRect(x-1, (height*2/3)+0, 1, height/10);
-                } else {
-                    //  ctx.fillStyle = "gray";
-                    //  ctx.fillRect(x-1, (height*2/3)+0, 1, height/20);
+                    const xx = x-1;
+                    const yy = height*2/3
+                    const ww = 1;
+                    const hh = height/3
+                    const grad = ctx.createLinearGradient(xx, yy, xx+ww, yy+hh);
+                    grad.addColorStop(0.0, "hotpink");
+                    grad.addColorStop(0.2, "hotpink");
+                    grad.addColorStop(0.5, "gray");
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(xx, yy, ww, hh);
                 }
             }
             prevTT = tt;
@@ -407,18 +412,18 @@ function showRehearsalProgressBar() {
     const { width, height } = canvas;
     canvas.width = width;  // all clear
     const progress = (t - curr) / (next - curr);
-    const [x1, x2] = [progress * width, width];
-    const [y1, y2] = [height / 4, height /4 * (4-2)];
+    const [xx, ww] = [progress * width, width];
+    const [yy, hh] = [height / 4, height /4 * (4-2)];
     const reheColor  = getRehearsalColor(rehearsal);
     const reheColor2 = getRehearsalColor(rehearsal2);
-    const grad = ctx.createLinearGradient(0, 0, width, height);
+    const grad = ctx.createLinearGradient(xx, yy, xx+ww, yy+hh);
     grad.addColorStop(0.0, reheColor);
     grad.addColorStop(0.5, reheColor);
     grad.addColorStop(0.9, reheColor2);
     grad.addColorStop(1.0, reheColor2);
     ctx.fillStyle = grad;
     ctx.globalAlpha = 1.0;
-    ctx.fillRect(x1, y1, x2, y2);
+    ctx.fillRect(xx, yy, ww, hh);
     if (! interp) {
         ctx.fillStyle = "hotpink";
         ctx.fillRect(0, 0, 5, 5);
