@@ -410,7 +410,7 @@ function showRehearsalProgressBar() {
     const ctx = canvas.getContext("2d");
     const { width, height } = canvas;
     canvas.width = width;  // all clear
-    const progress = (t - curr) / (next - curr);
+    const progress = (next - curr)? ((t - curr) / (next - curr)): 1.0;
     const [xx, ww] = [progress * width, width];
     const [yy, hh] = [height / 4, height /4 * (4-2)];
     const reheColor  = getRehearsalColor(rehearsal);
