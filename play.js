@@ -172,7 +172,6 @@ function getRehearsalIdx(currentTime) {
             prevTi = ti;  prevRi = ri;
         }
     }
-    console.debug("getRehearsalIdx last:=> ", {prevTi, prevRi});
     return [parseInt(prevTi, 10), parseInt(prevRi, 10)];
 }
 
