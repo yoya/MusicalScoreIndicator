@@ -74,6 +74,6 @@ const getRehearsalColor = (r) => {
     for (let i = 0; i < r; i++) {
         hue = (hue + (360/5+11)) % 360;
     }
-    const color = "hsl("+hue+"deg 90% 90%)";
+    const color = "hsl("+hue+"deg 90% 85%)";
     return color;
 }
