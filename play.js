@@ -305,7 +305,15 @@ function makeProgressBase() {
             ctx.fillRect(x, 0, w, h);
             ctx.fillStyle = "black";
             const ty = height / 6;
-            ctx.fillText(prevComment, x, ty);
+	    const idxCR = prevComment.indexOf("\n");
+	    if (0 < idxCR) {  // 複数行対応(とりあえず2行だけ)
+		ctx.fillText(prevComment.substring(0, idxCR), x, ty-2);
+		console.log(prevComment);
+		ctx.fillText(prevComment.substring(idxCR+1), x, ty+14);
+	    } else {
+		// 一行の時はこちら
+		ctx.fillText(prevComment, x, ty);
+	    }
         }
         prevComment = t.comment;
         prevT = t2;
