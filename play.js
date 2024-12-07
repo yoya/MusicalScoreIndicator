@@ -11,6 +11,8 @@ const file = "daphchlo-no1.mp4";
 const context = {
     playing: false,
     currentTime: 0.0,
+    headTime: 0.0,
+    tailTime: 0.0,
     duration: 0.0,
     hitTime: 0.0,
 }
@@ -90,6 +92,10 @@ function timeScheduleInterpolate(schedule, refSched) {
     const url = getHashParam("c");
     loadFile(url, (resp) => {
         config = resp
+	if ('timeScope' in config) {
+	    context.headTime = stringToTime(config.timeScope.headTime);
+	    context.tailTime = stringToTime(config.timeScope.tailTime);
+	}
         const refUrl = config.reference;
         if (refUrl) {
             // reference がある場合、timeSchedule の補間に使う
@@ -104,6 +110,16 @@ function timeScheduleInterpolate(schedule, refSched) {
         }
     });
 })();
+
+function positionToTime(x, width) {
+    const { headTime, tailTime } = context;
+    return (tailTime - headTime) * (x / width) + headTime;
+}
+
+function timeToPosition(t, width) {
+    const { headTime, tailTime } = context;
+    return ((t - headTime) / (tailTime - headTime)) * width;
+}
 
 function setCurrentTime(t) {
     $("#video").currentTime = t;     // seek video
@@ -146,14 +162,19 @@ function currentVideo() {  // 現在時刻を追う
     $("#currentTime").innerText = timeToString(currentTime);
     context.currentTime = currentTime;
 }
+
 function durationVideo() {  // duration が確定する時
     const { duration } = $("#video")
     $("#durationTime").innerText = timeToString(duration);
     context.duration = duration;
+    if (context.tailTime === 0) {
+	context.tailTime = duration;
+    }
     makeProgressBase();
     showProgressBar();
     showRehearsalProgressBar();
 }
+
 function hitVideo(hitTime) {  // progressBar で時間を指示された
     $("#hitTime").innerText = timeToString(hitTime);
     context.hitTime = hitTime;
@@ -241,9 +262,9 @@ function rehearsalVideo() {  // 現在時刻から検索
     $("#rehearsalNumber").innerText = rehearsalNumber;
     context.rehearsalNumber = rehearsalNumber;
 }
+
 function hitProgressBar(x, y, width, height) {
-    const { duration } = context;
-    const t = duration * (x / width);
+    const t = positionToTime(x, width);
     let ret = 0;
     // 触る場所によってキリの良い場所に移動
     const choice = (y * 3 / height) | 0;
@@ -296,10 +317,11 @@ function makeProgressBase() {
     for (const i in config.timeSchedule) {
         const t = config.timeSchedule[i];
         const t2 = stringToTime(t.rehearsal[0][1]);
+	console.log({i,t2});
         if (0 <= prevT) {
             ctx.fillStyle = getScheduleColor(i);
-            const x = width * prevT / duration;
-            const w = width * (t2 - prevT) / duration;
+            const x = timeToPosition(prevT, width);
+            const w = timeToPosition(t2, width) - x;
             const h = height/3;
             ctx.strokeStyle = "gray";
             ctx.fillRect(x, 0, w, h);
@@ -325,8 +347,8 @@ function makeProgressBase() {
             const [rehearsal, timeStr, interp] = t.rehearsal[i];
             const tt = stringToTime(timeStr);
             if (0 <= prevTT) {
-                const x = width * prevTT / duration;
-                const w = width * (tt - prevTT) / duration;
+                const x = timeToPosition(prevTT, width);
+                const w = timeToPosition(tt, width) - x;
                 const y = height/3 + ((i-1)%3) * height / 9;
                 const h = height/3/3;
                 ctx.fillStyle = getRehearsalColor(prevRehearsal);
@@ -360,7 +382,7 @@ function makeProgressBase() {
             const [rehearsal, timeStr] = b;
             const tt = stringToTime(timeStr);
             if (0 <= prevTT) {
-                const x = width * prevTT / duration;
+                const x = timeToPosition(prevTT, width)
                 const y = [(height*2/5), (height/2), (height*3/5)][((i-1)%3)];
                 ctx.fillStyle = "black";
                 ctx.fillText(prevRehearsal, x, y+5);
@@ -373,7 +395,8 @@ function makeProgressBase() {
 }
 
 function showProgressBar() {
-    const { currentTime, duration, hitTime } = context;
+    const { currentTime, hitTime, headTime, tailTime, duration } = context;
+    const scopeDuration = tailTime - headTime;
     // console.debug("showProgressBar",  { currentTime, duration, hitTime });
     // if (hitTime > currentTime) {
     // context.hitTime = currentTime;
@@ -386,12 +409,18 @@ function showProgressBar() {
         ctx.putImageData(baseImageData, 0, 0);
     }
     if (waveImage) {
-        ctx.drawImage(waveImage, 0, height*2/3, width, height/3);
+	ctx.save();
+	const x1 = headTime / duration * waveImage.width;
+	const x2 = tailTime / duration * waveImage.width;
+	ctx.imageSmoothingEnabled = false;
+	ctx.drawImage(waveImage, x1, 0, x2 - x1, waveImage.height,
+		      0, height*2/3, width, height/3);
+	ctx.restore();
     }
     //
     ctx.globalAlpha = 0.6;
-    const hitX = (hitTime / duration) * width;
-    const currentX = (currentTime / duration) * width;
+    const hitX = timeToPosition(hitTime, width);
+    const currentX = timeToPosition(currentTime, width)
     const grad = ctx.createLinearGradient(0, 0, width, height);
     [ [0.0, "red"], [0.2, "orange"], [0.4, "yellowgreen"],
       [0.6, "lime"], [0.8, "RoyalBlue"], [1.0, "violet"]
@@ -445,16 +474,21 @@ function showRehearsalProgressBar() {
  */
 function tickFunction() {
     // console.debug("tickFunction");
+    const { currentTime } = $("#video")
     if (context.playing) {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
         // spectrum 画像の補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
-        const diff = $("#spectrum").currentTime - $("#video").currentTime;
+        const diff = $("#spectrum").currentTime - currentTime;
         if (Math.abs(diff) > 0.1) {
             // console.warn("spectrum - video: ", diff);
             $("#spectrum").currentTime = $("#video").currentTime;
         }
+	if (currentTime > context.tailTime) {
+	    $("#video").pause();
+	    $("#spectrum").pause();
+	}
     }
 }
 
@@ -466,7 +500,10 @@ function tickFunction2() {
 
 function main() {
     const ts = getHashParam("t");
-    const startTime = (ts)? stringToTime(ts): 0;
+    let startTime = (ts)? stringToTime(ts): 0;
+    if (startTime < context.headTime) {
+	startTime = context.headTime;
+    }
     let startTimeDone = (startTime)? false: true;
     $("#video").src = config.file;
     $("#waveimage").src = config.waveimage;
