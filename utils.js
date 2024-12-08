@@ -18,7 +18,9 @@ const _$ = e => {
     }
     // YouTube API と同じメソッドを生やす
     if (! e.seekTo) { e.seekTo = (t) => { e.currentTime = t; } }
-    if (! e.getCurrentTime) { e.getCurrentTime = () => e.currentTime };
+    if (! e.getCurrentTime) { e.getCurrentTime = () => e.currentTime }
+    if (! e.playVideo) { e.playVideo = e.play }
+    if (! e.pauseVideo) { e.pauseVideo = e.pause }
     return e;
 }
 const $ = s => {
