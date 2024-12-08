@@ -55,6 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	const r = loadFile(refUrl);
         // reference がある場合、timeSchedule の補間に使う
         timeScheduleInterpolate(config.timeSchedule, r.timeSchedule);
+	if (r.reference) {
+	    const r2 = loadFile(r.reference);
+            timeScheduleInterpolate(config.timeSchedule, r2.timeSchedule);
+	}
     }
     main();
 });
