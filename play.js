@@ -6,8 +6,6 @@
  * https://developer.mozilla.org/ja/docs/Web/API/OfflineAudioContext
  */
 
-const file = "daphchlo-no1.mp4";
-
 const context = {
     playing: false,
     currentTime: 0.0,
