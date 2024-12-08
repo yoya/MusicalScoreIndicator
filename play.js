@@ -30,28 +30,33 @@ function getHashParam(p) {
     return url.searchParams.get(p);
 }
 
-function _main() {
-    if (bootFlags === 3) {
-        main();
-    }
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-    bootFlags |= 1;
-    _main();
+    // 設定の JSON を取得して config に代入する
+    const url = getHashParam("c");
+    const resp = loadFile(url);
+    config = resp
+    if ('timeScope' in config) {
+	context.headTime = stringToTime(config.timeScope.headTime);
+	context.tailTime = stringToTime(config.timeScope.tailTime);
+    }
+    const refUrl = config.reference;
+    if (refUrl) {
+	const r = loadFile(refUrl);
+        // reference がある場合、timeSchedule の補間に使う
+        timeScheduleInterpolate(config.timeSchedule, r.timeSchedule);
+    }
+    main();
 });
 
-function loadFile(url, callback) {
+function loadFile(url) {  // sync function
     var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = (e) => {
-        // console.debug({ url, file, xhr, e });
-        if (xhr.readyState === 4) {
-            const resp = JSON.parse(xhr.responseText);
-            callback(resp)
-        }
-    }
-    xhr.open("GET", url, true); // async:true
+    xhr.open("GET", url, false); // async:false
     xhr.send(null);
+    if (xhr.readyState === 4) {
+	const resp = JSON.parse(xhr.responseText);
+	return resp;
+    }
+    return null;
 }
 
 function timeScheduleInterpolate(schedule, refSched) {
@@ -85,29 +90,6 @@ function timeScheduleInterpolate(schedule, refSched) {
         }
     }
 }
-
-(() => {  // 設定の JSON を取得して config に代入する
-    const url = getHashParam("c");
-    loadFile(url, (resp) => {
-        config = resp
-	if ('timeScope' in config) {
-	    context.headTime = stringToTime(config.timeScope.headTime);
-	    context.tailTime = stringToTime(config.timeScope.tailTime);
-	}
-        const refUrl = config.reference;
-        if (refUrl) {
-            // reference がある場合、timeSchedule の補間に使う
-            loadFile(refUrl, (r) => {
-                timeScheduleInterpolate(config.timeSchedule, r.timeSchedule);
-                bootFlags |= 2;
-                _main();
-            });
-        } else {
-            bootFlags |= 2;
-            _main();
-        }
-    });
-})();
 
 function positionToTime(x, width) {
     const { headTime, tailTime } = context;
