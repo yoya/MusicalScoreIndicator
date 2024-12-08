@@ -39,6 +39,17 @@ document.addEventListener("DOMContentLoaded", () => {
 	context.headTime = stringToTime(config.timeScope.headTime);
 	context.tailTime = stringToTime(config.timeScope.tailTime);
     }
+    $("#waveimage").src = config.waveimage;
+    $("#video").src = config.file;
+    $("#spectrum").src = config.spectrum;
+    if (config.bigvideo) {
+	$("#bigvideo").src = config.bigvideo;
+	$("#bigvideoContainer").style.display = "block";
+	videoCluster = new makeVideoCluster($("#bigvideo"), [$("#video"), $("#spectrum")]);
+    } else {
+	videoCluster = new makeVideoCluster($("#video"), [$("#spectrum")]);
+    }
+    masterVideo = videoCluster.getMaster();
     const refUrl = config.reference;
     if (refUrl) {
 	const r = loadFile(refUrl);
@@ -57,6 +68,45 @@ function loadFile(url) {  // sync function
 	return resp;
     }
     return null;
+}
+
+let videoCluster = null;
+let masterVideo  = null;
+function makeVideoCluster(videoMaster, videoSlaves) {
+    this.videoMaster = videoMaster;
+    this.videoSlaves = videoSlaves;
+    const videoAll =  [videoMaster, ... videoSlaves];
+    this.videoAll = videoAll;
+    this.getMaster = () => { return this.videoMaster };
+    this.getCurrentTime = () => {
+	this.videoMaster.getCurrentTime();
+    }
+    this.playVideo = () => {
+	for (const v of this.videoAll) {
+	    v.playVideo();
+	}
+    }
+    this.pauseVideo = () => {
+	for (const v of this.videoAll) {
+	    v.pauseVideo();
+	}
+    }
+    this.seekTo = (t) => {
+	for (const v of this.videoAll) {
+	    v.seekTo(t);
+	}
+    }
+    this.syncByMaster = () => {
+	const currentTime = this.videoMaster.getCurrentTime();
+	for (const v of this.videoSlaves) {
+	    const t = v.getCurrentTime();
+            const absdiff = Math.abs(currentTime - t)
+	    // 同期補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
+            if (0.1 < absdiff) {
+		v.setCurrentTime(t);
+	    }
+	}
+    }
 }
 
 function timeScheduleInterpolate(schedule, refSched) {
@@ -102,8 +152,7 @@ function timeToPosition(t, width) {
 }
 
 function setCurrentTime(t) {
-    $("#video").seekTo(t);     // seek video
-    $("#spectrum").seekTo(t);  // seek video
+    videoCluster.seekTo(t);
     context.currentTime = t;
 }
 
@@ -138,13 +187,13 @@ function pauseVideo(e) {  // 動画 pause 状態になった時に呼ぶ
 }
 
 function currentVideo() {  // 現在時刻を追う
-    const currentTime = $("#video").getCurrentTime();
+    const currentTime = masterVideo.getCurrentTime();
     $("#currentTime").innerText = timeToString(currentTime);
     context.currentTime = currentTime;
 }
 
 function durationVideo() {  // duration が確定する時
-    const { duration } = $("#video")
+    const { duration } = masterVideo;
     $("#durationTime").innerText = timeToString(duration);
     context.duration = duration;
     if (context.tailTime === 0) {
@@ -269,7 +318,7 @@ function hitProgressBar(x, y, width, height) {
     return ret;
 }
 function hitRehearsalProgressBar(x, y, width, height) {
-    const t = $("#video").getCurrentTime();
+    const t = masterVideo.getCurrentTime();
     const curr = getRehearsalTime(t, 0);
     const next = getRehearsalTime(t, 1);
     const r = x / width;
@@ -297,7 +346,6 @@ function makeProgressBase() {
     for (const i in config.timeSchedule) {
         const t = config.timeSchedule[i];
         const t2 = stringToTime(t.rehearsal[0][1]);
-	console.log({i,t2});
         if (0 <= prevT) {
             ctx.fillStyle = getScheduleColor(i);
             const x = timeToPosition(prevT, width);
@@ -415,7 +463,7 @@ function showProgressBar() {
 }
 
 function showRehearsalProgressBar() {
-    const t = $("#video").getCurrentTime();
+    const t = masterVideo.getCurrentTime();
     const curr = getRehearsalTime(t, 0);
     const next = getRehearsalTime(t, 1);
     const [ti, ri] = getRehearsalIdx(curr);
@@ -454,20 +502,14 @@ function showRehearsalProgressBar() {
  */
 function tickFunction() {
     // console.debug("tickFunction");
-    const currentTime = $("#video").getCurrentTime();
+    const currentTime = masterVideo.getCurrentTime();
     if (context.playing) {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
-        // spectrum 画像の補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
-        const diff = $("#spectrum").getCurrentTime() - currentTime;
-        if (Math.abs(diff) > 0.1) {
-            // console.warn("spectrum - video: ", diff);
-            $("#spectrum").seekTo(currentTime);
-        }
+	videoCluster.syncByMaster();
 	if (currentTime > context.tailTime) {
-	    $("#video").pauseVideo();
-	    $("#spectrum").pauseVideo();
+	    videoCluster.pauseVideo();
 	}
     }
 }
@@ -485,18 +527,14 @@ function main() {
 	startTime = context.headTime;
     }
     let startTimeDone = (startTime)? false: true;
-    $("#video").src = config.file;
-    $("#waveimage").src = config.waveimage;
-    $("#spectrum").src = config.spectrum;
     /*
      * video event handler
      */
-    $("#video").on("canplaythrough", e => {
+    masterVideo.on("canplaythrough", e => {
 	if (context.playing)  {
             return ;
         }
-        $("#video").pauseVideo();
-        $("#spectrum").pauseVideo();
+	videoCluster.pauseVideo();
         pauseVideo();
         // Loading 表示を上書き
         $("#resetButton").innerText = "Reset";
@@ -508,15 +546,14 @@ function main() {
             startTimeDone = true;
         }
     });
-    $("#video").on("durationchange", durationVideo);
-    $("#video").on("play", playVideo);
-    $("#video").on("playing", e => {
-        $("#video").playVideo();
-        $("#spectrum").playVideo();
+    masterVideo.on("durationchange", durationVideo);
+    masterVideo.on("play", playVideo);
+    masterVideo.on("playing", e => {
+	videoCluster.playVideo();
     });
     $("#video").on("pause", () => {
         pauseVideo();
-        $("#spectrum").pauseVideo();
+	videoCluster.pauseVideo();
     });
     $("#video").on("ended", () => {
         pauseVideo();
@@ -540,23 +577,20 @@ function main() {
         // duration は初期化しない
         context.hitTime = startTime;
         setCurrentTime(startTime);
-        $("#video").pauseVideo();
-        $("#spectrum").pauseVideo();
+	videoCluster.pauseVideo();
         currentVideo();
         rehearsalVideo();
         showProgressBar();
     });
     $("#playButton").on("click", (e) => {
         if (context.playing) {
-            $("#video").pauseVideo();
-            $("#spectrum").pauseVideo();
+	    videoCluster.pauseVideo();
         } else {
-            $("#video").playVideo();
-            $("#spectrum").playVideo();
+	    videoCluster.playVideo();
         }
     });
     $("#prevButton").on("click", (e) => {
-        const t = $("#video").getCurrentTime();
+        const t = masterVideo.getCurrentTime();
         const rt = getRehearsalTime(t, -1);
         console.debug("#prevButton", { t, rt });
         setCurrentTime(rt);
@@ -566,7 +600,7 @@ function main() {
         showRehearsalProgressBar();
     });
     $("#currButton").on("click", (e) => {
-        const t = $("#video").getCurrentTime();
+        const t = masterVideo.getCurrentTime();
         const rt = getRehearsalTime(t, 0);
         console.debug("#currButton", { t, rt });
         setCurrentTime(rt);
@@ -576,7 +610,7 @@ function main() {
         showRehearsalProgressBar();
     });
     $("#nextButton").on("click", (e) => {
-        const t = $("#video").getCurrentTime();
+        const t = masterVideo.getCurrentTime();
         const rt = getRehearsalTime(t, 1);
         console.debug("#nextButton", { t, rt });
         setCurrentTime(rt);
@@ -600,8 +634,7 @@ function main() {
         showRehearsalProgressBar();
         // 待たずに play しても無駄
         setTimeout(() => {
-            $("#video").playVideo();
-            $("#spectrum").playVideo();
+	    videoCluster.playVideo();
         }, 200);
     });
     $("#rehearsalProgressBarContainer").on("pointerdown", (e) => {
@@ -616,8 +649,7 @@ function main() {
         showRehearsalProgressBar();
         // 待たずに play しても無駄
         setTimeout(() => {
-            $("#video").playVideo();
-            $("#spectrum").playVideo();
+	    videoCluster.playVideo();
         }, 200);
     });
 }
