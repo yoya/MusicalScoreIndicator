@@ -102,8 +102,8 @@ function timeToPosition(t, width) {
 }
 
 function setCurrentTime(t) {
-    $("#video").currentTime = t;     // seek video
-    $("#spectrum").currentTime = t;  // seek video
+    $("#video").seekTo(t);     // seek video
+    $("#spectrum").seekTo(t);  // seek video
     context.currentTime = t;
 }
 
@@ -138,7 +138,7 @@ function pauseVideo(e) {  // 動画 pause 状態になった時に呼ぶ
 }
 
 function currentVideo() {  // 現在時刻を追う
-    const { currentTime } = $("#video");
+    const currentTime = $("#video").getCurrentTime();
     $("#currentTime").innerText = timeToString(currentTime);
     context.currentTime = currentTime;
 }
@@ -269,7 +269,7 @@ function hitProgressBar(x, y, width, height) {
     return ret;
 }
 function hitRehearsalProgressBar(x, y, width, height) {
-    const t = $("#video").currentTime;
+    const t = $("#video").getCurrentTime();
     const curr = getRehearsalTime(t, 0);
     const next = getRehearsalTime(t, 1);
     const r = x / width;
@@ -415,7 +415,7 @@ function showProgressBar() {
 }
 
 function showRehearsalProgressBar() {
-    const t = $("#video").currentTime;
+    const t = $("#video").getCurrentTime();
     const curr = getRehearsalTime(t, 0);
     const next = getRehearsalTime(t, 1);
     const [ti, ri] = getRehearsalIdx(curr);
@@ -454,20 +454,20 @@ function showRehearsalProgressBar() {
  */
 function tickFunction() {
     // console.debug("tickFunction");
-    const { currentTime } = $("#video")
+    const currentTime = $("#video").getCurrentTime();
     if (context.playing) {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
         // spectrum 画像の補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
-        const diff = $("#spectrum").currentTime - currentTime;
+        const diff = $("#spectrum").getCurrentTime() - currentTime;
         if (Math.abs(diff) > 0.1) {
             // console.warn("spectrum - video: ", diff);
-            $("#spectrum").currentTime = $("#video").currentTime;
+            $("#spectrum").seekTo(currentTime);
         }
 	if (currentTime > context.tailTime) {
-	    $("#video").pause();
-	    $("#spectrum").pause();
+	    $("#video").pauseVideo();
+	    $("#spectrum").pauseVideo();
 	}
     }
 }
@@ -495,8 +495,8 @@ function main() {
 	if (context.playing)  {
             return ;
         }
-        $("#video").pause();
-        $("#spectrum").pause();
+        $("#video").pauseVideo();
+        $("#spectrum").pauseVideo();
         pauseVideo();
         // Loading 表示を上書き
         $("#resetButton").innerText = "Reset";
@@ -511,12 +511,12 @@ function main() {
     $("#video").on("durationchange", durationVideo);
     $("#video").on("play", playVideo);
     $("#video").on("playing", e => {
-        $("#video").play();
-        $("#spectrum").play();
+        $("#video").playVideo();
+        $("#spectrum").playVideo();
     });
     $("#video").on("pause", () => {
         pauseVideo();
-        $("#spectrum").pause();
+        $("#spectrum").pauseVideo();
     });
     $("#video").on("ended", () => {
         pauseVideo();
@@ -540,23 +540,23 @@ function main() {
         // duration は初期化しない
         context.hitTime = startTime;
         setCurrentTime(startTime);
-        $("#video").pause();
-        $("#spectrum").pause();
+        $("#video").pauseVideo();
+        $("#spectrum").pauseVideo();
         currentVideo();
         rehearsalVideo();
         showProgressBar();
     });
     $("#playButton").on("click", (e) => {
         if (context.playing) {
-            $("#video").pause();
-            $("#spectrum").pause();
+            $("#video").pauseVideo();
+            $("#spectrum").pauseVideo();
         } else {
-            $("#video").play();
-            $("#spectrum").play();
+            $("#video").playVideo();
+            $("#spectrum").playVideo();
         }
     });
     $("#prevButton").on("click", (e) => {
-        const t = $("#video").currentTime;
+        const t = $("#video").getCurrentTime();
         const rt = getRehearsalTime(t, -1);
         console.debug("#prevButton", { t, rt });
         setCurrentTime(rt);
@@ -566,7 +566,7 @@ function main() {
         showRehearsalProgressBar();
     });
     $("#currButton").on("click", (e) => {
-        const t = $("#video").currentTime;
+        const t = $("#video").getCurrentTime();
         const rt = getRehearsalTime(t, 0);
         console.debug("#currButton", { t, rt });
         setCurrentTime(rt);
@@ -576,7 +576,7 @@ function main() {
         showRehearsalProgressBar();
     });
     $("#nextButton").on("click", (e) => {
-        const t = $("#video").currentTime;
+        const t = $("#video").getCurrentTime();
         const rt = getRehearsalTime(t, 1);
         console.debug("#nextButton", { t, rt });
         setCurrentTime(rt);
@@ -600,8 +600,8 @@ function main() {
         showRehearsalProgressBar();
         // 待たずに play しても無駄
         setTimeout(() => {
-            $("#video").play();
-            $("#spectrum").play();
+            $("#video").playVideo();
+            $("#spectrum").playVideo();
         }, 200);
     });
     $("#rehearsalProgressBarContainer").on("pointerdown", (e) => {
@@ -616,8 +616,8 @@ function main() {
         showRehearsalProgressBar();
         // 待たずに play しても無駄
         setTimeout(() => {
-            $("#video").play();
-            $("#spectrum").play();
+            $("#video").playVideo();
+            $("#spectrum").playVideo();
         }, 200);
     });
 }
