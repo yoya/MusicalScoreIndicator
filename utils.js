@@ -1,6 +1,7 @@
 "use strict";
 
 const _$ = e => {
+    // jQuery 風の eventListener
     e.on = (t, f) => {
         if (Array.isArray(t)) {
             t.forEach((tt) => e.addEventListener(tt, f));
@@ -15,6 +16,9 @@ const _$ = e => {
             e.momoveEventListener(t, f);
         }
     }
+    // YouTube API と同じメソッドを生やす
+    if (! e.seekTo) { e.seekTo = (t) => { e.currentTime = t; } }
+    if (! e.getCurrentTime) { e.getCurrentTime = () => e.currentTime };
     return e;
 }
 const $ = s => {
