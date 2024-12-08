@@ -107,7 +107,7 @@ function makeVideoCluster(videoMaster, videoSlaves) {
             const absdiff = Math.abs(currentTime - t)
 	    // 同期補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
             if (0.1 < absdiff) {
-		v.setCurrentTime(t);
+		v.seekTo(t);
 	    }
 	}
     }
