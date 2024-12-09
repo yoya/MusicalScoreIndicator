@@ -14,7 +14,6 @@ const _$ = e => {
 		    'onReady': () => {
 			e.dispatchEvent(new Event("canplaythrough"));
 			e.dispatchEvent(new Event("durationchange"));
-			e.dispatchEvent(new Event("play"));
 		    },
 		    'onStateChange': () => {
 			const state = player.getPlayerState();
@@ -23,15 +22,15 @@ const _$ = e => {
 			    case -1: //  => init
 			    case 0: //  => stop
 				e.dispatchEvent(new Event("ended"));
-				break;
-			    case 1: //  => playing
-				e.dispatchEvent(new Event("playing"));
+			    case 1: //  => play
+				e.dispatchEvent(new Event("play"));
 				break;
 			    case 2: //  => pause
 				e.dispatchEvent(new Event("pause"));
 				break;
-			    case 3: //  => play
-				e.dispatchEvent(new Event("play"));
+				break;
+			    case 3: //  => playing
+				e.dispatchEvent(new Event("playing"));
 				break;
 			    }
 			    playerContext.state = state;
@@ -39,7 +38,11 @@ const _$ = e => {
                     },
 		},
 		playerVars: {
-		    'autoplay': 0,
+		    autoplay: 0,
+		    controls: 0,
+		    loop: 0,
+		    modestbranding: 0,
+		    playsinline: 1,
 		}
 	    });
 	    e = player.g;
