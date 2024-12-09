@@ -20,6 +20,7 @@ const _$ = e => {
 			const state = player.getPlayerState();
 			if (playerContext.state !== state) {
 			    switch (state) {
+			    case -1: //  => init
 			    case 0: //  => stop
 				e.dispatchEvent(new Event("ended"));
 				break;
