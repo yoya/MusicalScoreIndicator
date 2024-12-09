@@ -77,32 +77,29 @@ function loadFile(url) {  // sync function
 let videoCluster = null;
 let masterVideo  = null;
 function makeVideoCluster(videoMaster, videoSlaves) {
-    this.videoMaster = videoMaster;
-    this.videoSlaves = videoSlaves;
     const videoAll =  [videoMaster, ... videoSlaves];
-    this.videoAll = videoAll;
-    this.getMaster = () => { return this.videoMaster };
+    this.getMaster = () => { return videoMaster };
     this.getCurrentTime = () => {
 	this.videoMaster.getCurrentTime();
     }
     this.playVideo = () => {
-	for (const v of this.videoAll) {
+	for (const v of videoAll) {
 	    v.playVideo();
 	}
     }
     this.pauseVideo = () => {
-	for (const v of this.videoAll) {
+	for (const v of videoAll) {
 	    v.pauseVideo();
 	}
     }
     this.seekTo = (t) => {
-	for (const v of this.videoAll) {
+	for (const v of videoAll) {
 	    v.seekTo(t);
 	}
     }
     this.syncByMaster = () => {
-	const currentTime = this.videoMaster.getCurrentTime();
-	for (const v of this.videoSlaves) {
+	const currentTime = videoMaster.getCurrentTime();
+	for (const v of videoSlaves) {
 	    const t = v.getCurrentTime();
             const absdiff = Math.abs(currentTime - t)
 	    // 同期補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
