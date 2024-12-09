@@ -30,20 +30,31 @@ function getHashParam(p) {
     return url.searchParams.get(p);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    // 設定の JSON を取得して config に代入する
-    const url = getHashParam("c");
-    const resp = loadFile(url);
-    config = resp
-    if ('timeScope' in config) {
-	context.headTime = stringToTime(config.timeScope.headTime);
-	context.tailTime = stringToTime(config.timeScope.tailTime);
+let boot = 0;
+
+// 設定の JSON を取得して config に代入する
+const url = getHashParam("c");
+config = loadFile(url);
+if ('timeScope' in config) {
+    context.headTime = stringToTime(config.timeScope.headTime);
+    context.tailTime = stringToTime(config.timeScope.tailTime);
+}
+
+document.addEventListener("DOMContentLoaded", (e) => {
+    init()
+});
+function onYouTubeIframeAPIReady() { init(); }
+
+function init() {
+    boot++;
+    if (boot < 2) {
+	return ;
     }
     $("#waveimage").src = config.waveimage;
-    $("#video").src = config.file;
-    $("#spectrum").src = config.spectrum;
+    $("#video").setSource(config.file);
+    $("#spectrum").setSource(config.spectrum);
     if (config.bigvideo) {
-	$("#bigvideo").src = config.bigvideo;
+	$("#bigvideo").setSource(config.bigvideo);
 	$("#bigvideoContainer").style.display = "block";
 	videoCluster = new makeVideoCluster($("#bigvideo"), [$("#video"), $("#spectrum")]);
     } else {
@@ -61,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
     }
     main();
-});
+};
 
 function loadFile(url) {  // sync function
     var xhr = new XMLHttpRequest();
@@ -194,7 +205,7 @@ function currentVideo() {  // 現在時刻を追う
 }
 
 function durationVideo() {  // duration が確定する時
-    const { duration } = masterVideo;
+    const duration = masterVideo.getDuration();
     $("#durationTime").innerText = timeToString(duration);
     context.duration = duration;
     if (context.tailTime === 0) {
@@ -552,11 +563,11 @@ function main() {
     masterVideo.on("playing", e => {
 	videoCluster.playVideo();
     });
-    $("#video").on("pause", () => {
+    masterVideo.on("pause", () => {
         pauseVideo();
 	videoCluster.pauseVideo();
     });
-    $("#video").on("ended", () => {
+    masterVideo.on("ended", () => {
         pauseVideo();
         context.hitTime = 0;
     });
