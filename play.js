@@ -92,24 +92,20 @@ function makeVideoCluster(videoMaster, videoSlaves) {
     }
     this.playVideo = (opts) => {
 	if (opts && opts.slaveonly) {
-	    for (const v of videoSlaves) {
-		v.playVideo();
-	    }
+	    videoSlaves.forEach(v => { v.playVideo(); });
 	} else {
-	    for (const v of videoAll) {
-		v.playVideo();
-	    }
+	    videoAll.forEach(v => { v.playVideo(); });
 	}
     }
-    this.pauseVideo = () => {
-	for (const v of videoAll) {
-	    v.pauseVideo();
+    this.pauseVideo = (opts) => {
+	if (opts && opts.slaveonly) {
+	    videoSlaves.forEach(v => { v.pauseVideo(); });
+	} else {
+	    videoAll.forEach(v => { v.pauseVideo(); });
 	}
     }
     this.seekTo = (t) => {
-	for (const v of videoAll) {
-	    v.seekTo(t);
-	}
+	videoAll.forEach(v => { v.seekTo(t); });
     }
     this.syncByMaster = () => {
 	const currentTime = videoMaster.getCurrentTime();
@@ -565,17 +561,15 @@ function main() {
         }
     });
     masterVideo.on("durationchange", durationVideo);
-    masterVideo.on("play", () => {
+    masterVideo.on("playing", () => {
 	if (context.playing) {
 	    videoCluster.playVideo({slaveonly:true});
 	}
-    });
-    masterVideo.on("playing", () => {
 	onPlaying();
     });
     masterVideo.on("pause", () => {
         onPause();
-	videoCluster.pauseVideo();
+	videoCluster.pauseVideo({slaveonly:true});
     });
     masterVideo.on("ended", () => {
         onPause();
