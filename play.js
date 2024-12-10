@@ -7,12 +7,12 @@
  */
 
 const context = {
-    playing: false,
+    playing: false,  // ユーザ操作でのみ on/off する
     currentTime: 0.0,
-    headTime: 0.0,
-    tailTime: 0.0,
-    duration: 0.0,
-    hitTime: 0.0,
+    headTime: 0.0,  // タイムスケジュール表示部の先頭
+    tailTime: 0.0,  // タイムスケジュール表示部の末尾
+    duration: 0.0,  // 動画の全体時間
+    hitTime: 0.0,  // クリックで指定した時間
 }
 
 let config;  // 設定データ
@@ -21,16 +21,12 @@ let waveImage = null; // 音声波形の画像データ
 const TICK  = 1000/10;  // 10 fps (0.1 sec)
 const TICK2 = 1000/24;  // 24 fps (0.041666... sec)
 let timerId = null;
-let timerId2 = null;
-
-let bootFlags = 0;
+let timerId2 = null;  //  リハーサルプログレスは小刻み更新
 
 function getHashParam(p) {
     const url = new URL(window.location);
     return url.searchParams.get(p);
 }
-
-let boot = 0;
 
 // 設定の JSON を取得して config に代入する
 const url = getHashParam("c");
@@ -40,7 +36,10 @@ if ('timeScope' in config) {
     context.tailTime = stringToTime(config.timeScope.tailTime);
 }
 
+let boot = 0;
 document.addEventListener("DOMContentLoaded", (e) => {
+    $("#waveimage").src = config.waveimage;
+    $("#spectrum").setSource(config.spectrum);
     init()
 });
 function onYouTubeIframeAPIReady() { init(); }
@@ -50,9 +49,7 @@ function init() {
     if (boot < 2) {
 	return ;
     }
-    $("#waveimage").src = config.waveimage;
     $("#video").setSource(config.file);
-    $("#spectrum").setSource(config.spectrum);
     if (config.bigvideo) {
 	$("#bigvideo").setSource(config.bigvideo);
 	$("#bigvideoContainer").style.display = "block";
