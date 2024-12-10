@@ -93,9 +93,15 @@ function makeVideoCluster(videoMaster, videoSlaves) {
     this.getCurrentTime = () => {
 	this.videoMaster.getCurrentTime();
     }
-    this.playVideo = () => {
-	for (const v of videoAll) {
-	    v.playVideo();
+    this.playVideo = (opts) => {
+	if (opts.slaveonly) {
+	    for (const v of videoSlaves) {
+		v.playVideo();
+	    }
+	} else {
+	    for (const v of videoAll) {
+		v.playVideo();
+	    }
 	}
     }
     this.pauseVideo = () => {
@@ -561,7 +567,7 @@ function main() {
     masterVideo.on("durationchange", durationVideo);
     masterVideo.on("play", playVideo);
     masterVideo.on("playing", e => {
-	videoCluster.playVideo();
+	videoCluster.playVideo({slaveonly:true});
     });
     masterVideo.on("pause", () => {
         pauseVideo();
