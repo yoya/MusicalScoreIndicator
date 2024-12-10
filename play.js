@@ -94,7 +94,7 @@ function makeVideoCluster(videoMaster, videoSlaves) {
 	this.videoMaster.getCurrentTime();
     }
     this.playVideo = (opts) => {
-	if (opts.slaveonly) {
+	if (opts && opts.slaveonly) {
 	    for (const v of videoSlaves) {
 		v.playVideo();
 	    }
