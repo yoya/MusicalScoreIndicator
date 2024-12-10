@@ -174,8 +174,8 @@ function setCurrentTime(t) {
     context.currentTime = t;
 }
 
-function playVideo(e) {  // 動画 play 状態になった時に呼ぶ
-    // console.debug("playVideo", {e});
+function onPlaying(e) {  // 動画 play 状態になった時に呼ぶ
+    // console.debug("onPlaying", {e});
     $("#playButton").innerText = "Pause";
     $("#playButton").style.backgroundColor = "#AFA";
     currentVideo();
@@ -188,8 +188,8 @@ function playVideo(e) {  // 動画 play 状態になった時に呼ぶ
     }
 }
 
-function pauseVideo(e) {  // 動画 pause 状態になった時に呼ぶ
-    // console.debug("pauseVideo", {e});
+function onPause(e) {  // 動画 pause 状態になった時に呼ぶ
+    // console.debug("onPause", {e});
     $("#playButton").innerText = "Play";
     $("#playButton").style.backgroundColor = "";
     currentVideo();
@@ -553,7 +553,7 @@ function main() {
             return ;
         }
 	videoCluster.pauseVideo();
-        pauseVideo();
+        onPause();
         // Loading 表示を上書き
         $("#resetButton").innerText = "Reset";
         $("#resetButton").style.backgroundColor = "#FCB";
@@ -571,14 +571,14 @@ function main() {
 	}
     });
     masterVideo.on("playing", () => {
-	playVideo();
+	onPlaying();
     });
     masterVideo.on("pause", () => {
-        pauseVideo();
+        onPause();
 	videoCluster.pauseVideo();
     });
     masterVideo.on("ended", () => {
-        pauseVideo();
+        onPause();
         context.hitTime = 0;
     });
     /*
