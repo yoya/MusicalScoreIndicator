@@ -183,6 +183,7 @@ function onPlaying(e) {  // 動画 play 状態になった時に呼ぶ
     $("#playButton").innerText = "Pause";
     $("#playButton").style.backgroundColor = "#AFA";
     currentVideo();
+    videoCluster.playVideo({slaveonly:true});
     context.playing = true;
     if (! timerId) {
         timerId = setInterval(tickFunction, TICK);
@@ -197,6 +198,7 @@ function onPause(e) {  // 動画 pause 状態になった時に呼ぶ
     $("#playButton").innerText = "Play";
     $("#playButton").style.backgroundColor = "";
     currentVideo();
+    videoCluster.pauseVideo({slaveonly:true});
     context.playing = false;
     if (timerId) {
         clearInterval(timerId);
@@ -569,16 +571,8 @@ function main() {
         }
     });
     masterVideo.on("durationchange", durationVideo);
-    masterVideo.on("playing", () => {
-	if (context.playing) {
-	    videoCluster.playVideo({slaveonly:true});
-	}
-	onPlaying();
-    });
-    masterVideo.on("pause", () => {
-        onPause();
-	videoCluster.pauseVideo({slaveonly:true});
-    });
+    masterVideo.on("playing", onPlaying);
+    masterVideo.on("pause", onPause);
     masterVideo.on("ended", () => {
         onPause();
         context.hitTime = 0;
