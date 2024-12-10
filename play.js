@@ -171,6 +171,9 @@ function timeToPosition(t, width) {
 
 function setCurrentTime(t) {
     videoCluster.seekTo(t);
+    if (! context.playing) {
+	videoCluster.pauseVideo();
+    }
     context.currentTime = t;
 }
 
@@ -565,9 +568,13 @@ function main() {
         }
     });
     masterVideo.on("durationchange", durationVideo);
-    masterVideo.on("play", playVideo);
-    masterVideo.on("playing", e => {
-	videoCluster.playVideo({slaveonly:true});
+    masterVideo.on("play", () => {
+	if (context.playing) {
+	    videoCluster.playVideo({slaveonly:true});
+	}
+    });
+    masterVideo.on("playing", () => {
+	playVideo();
     });
     masterVideo.on("pause", () => {
         pauseVideo();

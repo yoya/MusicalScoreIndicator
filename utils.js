@@ -22,15 +22,15 @@ const _$ = e => {
 			    case -1: //  => init
 			    case 0: //  => stop
 				e.dispatchEvent(new Event("ended"));
-			    case 1: //  => play
-				e.dispatchEvent(new Event("play"));
+				break;
+			    case 1: //  => playing
+				e.dispatchEvent(new Event("playing"));
 				break;
 			    case 2: //  => pause
 				e.dispatchEvent(new Event("pause"));
 				break;
-				break;
-			    case 3: //  => playing
-				e.dispatchEvent(new Event("playing"));
+			    case 3: //  => play
+				e.dispatchEvent(new Event("play"));
 				break;
 			    }
 			    playerContext.state = state;
