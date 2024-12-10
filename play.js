@@ -38,7 +38,6 @@ if ('timeScope' in config) {
 
 let boot = 0;
 document.addEventListener("DOMContentLoaded", (e) => {
-    $("#waveimage").src = config.waveimage;
     $("#spectrum").setSource(config.spectrum);
     init()
 });
@@ -49,6 +48,7 @@ function init() {
     if (boot < 2) {
 	return ;
     }
+    $("#waveimage").src = config.waveimage;
     $("#video").setSource(config.file);
     if (config.bigvideo) {
 	$("#bigvideo").setSource(config.bigvideo);
