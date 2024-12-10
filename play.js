@@ -163,11 +163,19 @@ function timeToPosition(t, width) {
 }
 
 function setCurrentTime(t) {
-    videoCluster.seekTo(t);
-    if (! context.playing) {
-	videoCluster.pauseVideo();
-    }
     context.currentTime = t;
+    if (context.playing) {
+	videoCluster.seekTo(t)
+    } else {
+	videoCluster.seekTo(t)
+	let fn;
+	masterVideo.on("play", fn = () => {
+	    videoCluster.pauseVideo();
+	});
+	setTimeout(() => { // pause の時は上の off が動かないので一旦これで
+	    masterVideo.off("play", fn);
+	}, 500);
+    }
 }
 
 function onPlaying(e) {  // 動画 play 状態になった時に呼ぶ
