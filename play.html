@@ -2,43 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8"/>
-    <style>
-      .flex { display: flex; }
-      .col { flex-direction: column; }
-      .row { flex-direction: row; }
-      .left { float: left; }
-      .flex-center { align-items: center;  justify-content: center; }
-      body {
-          background-color: #f4ffff;
-      }
-      button {
-          border-width: 1px;
-          border-radius: 2em;
-          box-shadow: 1px 2px 0 gray;
-          text-align: center;
-      }
-      button:active {
-          box-shadow: none;
-          transform: translateY(5px);
-      }
-      textContainer {
-          margin: 0.5em;
-      }
-      text { padding: 0.2em;
-             border: thick solid yellowgreen;
-             border-width: thin;
-             background-color: white;
-           }
-      #progressBarContainer {
-          margin: 0.2em;
-          border: thick solid blue;
-          border-width: thin;
-          background-color: silver;
-      }
-      #progressBar {
-          margin: 0;
-      }
-    </style>
+    <link rel="stylesheet" href="play.css">
   </head>
   <body>
     <div class="flex" id="bigvideoContainer" style="display:none">
@@ -117,7 +81,6 @@
         </div>
       </div>
     </div>
-    <script src="https://www.youtube.com/iframe_api"> </script>
     <script src="utils.js"> </script>
     <script src="play.js"> </script>
   </body>
