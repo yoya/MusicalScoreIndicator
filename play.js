@@ -1,6 +1,15 @@
 "use strict";
 
 /*
+ * https://developers.google.com/youtube/iframe_api_reference?hl=ja
+ */
+
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+/*
  * https://developer.mozilla.org/ja/docs/Web/API/URLSearchParams
  * https://developer.mozilla.org/ja/docs/Web/HTML/Element/video
  * https://developer.mozilla.org/ja/docs/Web/API/OfflineAudioContext
