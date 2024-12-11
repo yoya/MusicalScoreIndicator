@@ -608,6 +608,7 @@ function main() {
         currentVideo();
         rehearsalVideo();
         showProgressBar();
+        showRehearsalProgressBar();
     });
     $("#playButton").on("click", (e) => {
         if (context.playing) {
