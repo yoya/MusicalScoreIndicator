@@ -1,0 +1,23 @@
+{
+    "file": "movie/debussy-images-Ibéria-celibidache-noaudio.mp4",
+    "bigvideo": "https://www.youtube.com/watch?v=5dxCdeR-Vxo",
+    "waveimage": "movie/debussy-images-Ibéria-celibidache-wave.png",
+    "spectrum":  "movie/debussy-images-Ibéria-celibidache-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "2. Les parfums de la nuit", "rehearsal": [
+            ["||", "8:48.2"], [37, "9:11.6"], [38,"10:01.5"],
+	    [39, "10:51.4"], [40, "12:01.6"],
+	    [41, "12:42.6"], [42, "13:34.9"],
+	    [43, "14:15.7"], [44, "14:54.1"], [45, "15:27.7"],
+	    [46, "15:57.9"], [47, "17:00.5"],
+	    [48, "17:36.1"], [49, "18:38.3"],
+	    ["Temppo I", "18:54.0"],
+	    [50, "19:46.2"], [51, "20:26.6"],
+	    ["6/8", "20:59.4"],
+	    [52, "21:20.2"],
+	    ["Fine", "21:57.2"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["Fine", "21:57.2"] ] }
+    ],
+    "timeScope": { "headTime": "8:48.2", "tailTime": "21:57.2" }
+}
