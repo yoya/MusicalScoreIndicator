@@ -661,9 +661,10 @@ function main() {
         showProgressBar();
         showRehearsalProgressBar();
         // 待たずに play しても無駄
+	context.playing = true;
         setTimeout(() => {
 	    videoCluster.playVideo();
-        }, 200);
+        }, 500);
     });
     $("#rehearsalProgressBarContainer").on("pointerdown", (e) => {
         e.preventDefault();
