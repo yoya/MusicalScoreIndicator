@@ -1,8 +1,8 @@
 {
-    "file": "movie/debussy-images-Ibéria-celibidache-noaudio.mp4",
+    "file": "movie/debussy-images-Iberia-celibidache-noaudio.mp4",
     "bigvideo": "https://www.youtube.com/watch?v=5dxCdeR-Vxo",
-    "waveimage": "movie/debussy-images-Ibéria-celibidache-wave.png",
-    "spectrum":  "movie/debussy-images-Ibéria-celibidache-spectrum.mp4",
+    "waveimage": "movie/debussy-images-Iberia-celibidache-wave.png",
+    "spectrum":  "movie/debussy-images-Iberia-celibidache-spectrum.mp4",
     "timeSchedule": [
         { "comment": "3. Le matin d'un jour de fête", "rehearsal": [
             ["||", "21:57.2"], [53, "22:09.6"],
