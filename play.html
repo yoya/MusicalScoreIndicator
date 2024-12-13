@@ -5,14 +5,16 @@
     <link rel="stylesheet" href="play.css">
   </head>
   <body>
-    <div class="flex" id="bigvideoContainer" style="display:none">
-      <video id="bigvideo" playsinline style="object-fit: cover;"> </video>
+    <div class="flex flex-center">
+      <div class="flex" id="bigvideoContainer" style="display:none">
+	<video id="bigvideo" playsinline style="object-fit: cover;"> </video>
+      </div>
     </div>
-    <div class="flex  flex-center">
+    <div class="flex flex-center">
       <div class="col">
         <video id="video" width="320" height="180" playsinline style="object-fit: cover;"> </video>
       </div>
-      <div class="col  flex-center">
+      <div class="col flex-center">
         <div class="row" style="margin: 0.2em 0.6em 0.8em 0.4em;">
           <button id="resetButton" style="width:10em; height:2em;">
             Loading
@@ -73,7 +75,7 @@
         </div>
       </div>
     </div>
-    <div class="flex   flex-center">
+    <div class="flex flex-center">
       <div class="row">
         <div id="progressBarContainer">
           <canvas id="progressBar" width="1080" height="120"> </canvas>
