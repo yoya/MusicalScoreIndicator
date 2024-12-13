@@ -17,6 +17,12 @@ sample.json を参考にして下さい。
 % sh movie.sh sample  # sample.mp4
 => generate sample-wave.png, sample-spectrum.mp4
 ```
+## bigvideo layout
+
+% ffmpeg -i sample.mp4 -vcodec copy -an sample-noaudio.mp4
+% ffmpeg -i original.mp4 -acodec copy -vf scale=1280:-1 sample-big.mp4
+ffmpeg -i in.mp4
+
 # usage
 
 http://〜/MusicalScoreIndicator/play.html?c=sample.json
