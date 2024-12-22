@@ -3,6 +3,8 @@
 .row { flex-direction: row; }
 .left { float: left; }
 .flex-center { align-items: center;  justify-content: center; }
+.fullwidth { max-width: 100%; }
+
 body {
     background-color: #f4ffff;
 }
