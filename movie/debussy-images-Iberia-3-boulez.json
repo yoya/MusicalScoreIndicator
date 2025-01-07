@@ -1,0 +1,21 @@
+{
+    "file": "https://www.youtube.com/watch?v=JXzvH1_16cs",
+    "waveimage": "movie/debussy-images-Iberia-3-boulez-wave.png",
+    "spectrum":  "movie/debussy-images-Iberia-3-boulez-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "3. Le matin d'un jour de fête", "rehearsal": [
+            ["||", "0s"], [53, "9.3s"],
+	    [54, "26.0s"], [55, "46.8s"],
+	    [56, "1:02.4"], [57, "1:21.0"], [58, "1:35.9"],
+	    [59, "1:53.6"], [60, "2:10.0"],
+	    [61, "2:21.0"], ["Tempo.112", "2:33.4"],
+	    [62, "2:52.7"], [63, "3:04.7"],
+	    [64, "3:10.7"], [65, "3:27.5"],
+	    [66, "3:33.5"], [67, "3:45.2"],
+	    [68, "3:51.0"], [69, "3:58.8"], [70, "4:02.7"],
+	    ["3/8", "4:05.5"],
+	    ["Fine", "4:13"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["Fine", "4:13"] ] }
+    ]
+}

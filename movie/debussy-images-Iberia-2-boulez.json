@@ -1,0 +1,20 @@
+{
+    "file": "https://www.youtube.com/watch?v=MDAzDUrNtdE",
+    "waveimage": "movie/debussy-images-Iberia-2-boulez-wave.png",
+    "spectrum":  "movie/debussy-images-Iberia-2-boulez-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "2. Les parfums de la nuit", "rehearsal": [
+            ["||", "2s"], [37, "16.1s"],  [38, "44.7s"],
+	    [39, "1:10.2"], [40, "1:46.0"],
+	    [41, "2:07.9"], [42, "2:38.7"],
+	    [43, "3:04.2"], [44, "3:25.5"], [45, "3:46.8"],
+	    [46, "4:04.1"], [47, "4:38.6"],
+	    [48, "4:59.6"], [49, "5:33.5"],
+	    ["Temppo I", "5:41.4"],
+	    [50, "6:15.4"], [51, "6:34.6"],
+	    ["6/8", "6:57.3"], [52, "7:09.0"],
+	    ["Fine", "7:30"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["Fine", "7:30"] ] }
+    ]
+}
