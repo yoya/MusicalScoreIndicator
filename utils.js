@@ -5,11 +5,12 @@ const _$ = e => {
 	const youtubePrefix = "https://www.youtube.com/watch?v=";
 	const { length } = youtubePrefix;
 	if (s.substr(0, length) == youtubePrefix) {
+	    const { width, height } = e;
 	    const videoId = s.substr(length, 11);
 	    const playerContext = { state: -1 }
-	    const player = new YT.Player('bigvideo', {
-		width: '1280', height: '720',
-		videoId: videoId,
+	    // e.id は 'bigvideo' もしくは video
+	    const player = new YT.Player(e.id, {
+		width, height, videoId,
 		events: {
 		    'onReady': () => {
 			e.dispatchEvent(new Event("canplaythrough"));
