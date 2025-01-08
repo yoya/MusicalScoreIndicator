@@ -1,0 +1,23 @@
+{
+    "file": "https://www.youtube.com/watch?v=O2n6ozyXurg",
+    "waveimage": "movie/debussy-images-Iberia-tilsonthomas-wave.png",
+    "spectrum":  "movie/debussy-images-Iberia-tilsonthomas-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "3. Le matin d'un jour de fête", "rehearsal": [
+            ["||", "16:46"], [53, "16:56.7"],
+	    [54, "17:18.3"], [55, "17:40.0"],
+	    [56, "17:57.3"], [57, "18:17.7"], [58, "18:33.9"],
+	    [59, "18:52.7"], [60, "19:08.5"],
+	    [61, "19:19.1"], ["Tempo.112", "19:32.2"],
+	    [62, "19:51.3"], [63, "20:03.3"],
+	    [64, "20:09.1"], [65, "20:26.85"],
+	    [66, "20:33.1"], [67, "20:41.9"],
+	    [68, "20:50.2"], [69, "20:57.5"],
+	    [70, "21:01.3"],
+	    ["3/8", "21:03.9"],
+	    ["Fine", "21:11"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["Fine", "21:11"] ] }
+    ],
+    "timeScope": { "headTime": "16:46", "tailTime": "21:11" }
+}
