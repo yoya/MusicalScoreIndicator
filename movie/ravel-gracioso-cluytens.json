@@ -21,5 +21,6 @@
 	    ["Fine", "7:34"] ]
         },
         { "comment": "terminater", "rehearsal": [ ["Fine", "7:34"] ] }
-    ]
+    ],
+    "timeScope": { "headTime": "2s", "tailTime": "7:34" }
 }
