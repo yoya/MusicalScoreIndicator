@@ -8,7 +8,7 @@ b=$1
 
 r=24
 
-ffmpeg -y -i $b.mp4 -filter_complex "showwavespic=size=1012x40::split_channels=0:colors=orange:scale=2" $b-wave.png
+ffmpeg -y -i $b.mp4 -filter_complex "showwavespic=size=1012x40:split_channels=0:colors=orange:scale=2" $b-wave.png
 convert $b-wave.png -fx "(p{i,j}+p{i,39-j})*0.6" -crop x20+0 -resize 'x400%!' +repage -crop x40+0+40 $b-wave.png
 zopflipng -y $b-wave.png $b-wave.png
 
