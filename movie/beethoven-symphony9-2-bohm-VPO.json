@@ -1,0 +1,14 @@
+{
+    "file": "movie/beethoven-symphony9-bohm-VPO-noaudio.mp4",
+    "bigvideo": "https://www.youtube.com/watch?v=LKX1klg_P1Q",
+    "waveimage": "movie/beethoven-symphony9-bohm-VPO-wave.png",
+    "spectrum":  "movie/beethoven-symphony9-2-bohm-VPO-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "2nd movement", "rehearsal": [
+            ["||", "16:50"],
+	    ["Fine", "28:57.5"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["Fine", "28:57.5"] ] }
+    ],
+    "timeScope": { "headTime": "16:50", "tailTime": "28:57.5" }
+}
