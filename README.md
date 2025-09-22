@@ -8,6 +8,7 @@ YouTube で音を再生しながら、楽譜の該当する場所を表示する
 sample.json を参考にして下さい。
 
 - movie/sample.mp4 (再生したい動画)
+  - ffmpeg -i original.mp4 -vf scale=320:-1 sample.mp4
 - movie/sample-wave.png, movie/sample-spectrum.mp4 (movie/movie.sh で movie/sample.mp4 から生成)
 
 # movie seup
