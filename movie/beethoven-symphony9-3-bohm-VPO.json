@@ -6,6 +6,13 @@
     "timeSchedule": [
         { "comment": "3rd movement", "rehearsal": [
             ["||", "28:59"],
+	    ["Andante mmoderato", "31:51.7"],
+	    ["Tempo I", "33:18.9"],
+	    ["Andante moderato", "35:31.6"],
+	    ["Adagio", "36:49.2"],
+	    ["A", "41:05.2"],
+	    ["B", "42:19.9"],
+	    ["C", "44:36.2"],
 	    ["Fine", "45:37"] ]
         },
         { "comment": "terminater", "rehearsal": [ ["Fine", "45:37"] ] }
