@@ -1,0 +1,22 @@
+{
+    "file": "movie/stravinsky/firebird1945-jarvi-london-noaudio.mp4",
+    "bigvideo": "movie/stravinsky/firebird1945-jarvi-london-big.mp4",
+    "waveimage": "movie/stravinsky/firebird1945-jarvi-london-wave.png",
+    "spectrum":  "movie/stravinsky/firebird1945-jarvi-london-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "12. Finale (終曲の賛歌【カスチェイの城と魔法の消滅、石にされていた騎士たちの復活、大団円】)", "rehearsal": [
+            [160, "27:51"], [161, "28:05.7"],
+	    [162, "28:19.8"], [163, "28:31.6"],
+	    [164, "28:49.7"],
+	    [165, "29:01.8"],
+	    [166, "29:16.4"],
+	    [167, "29:22.1"], [168, "29:27.7"],
+	    [169, "29:33.1"], [170, "29:38.6"], [171, "29:44.1"],
+	    [172, "29:49.8"], [173, "29:58.0"], [174, "30:05.65"],
+	    [175, "30:15.4"],
+	    ["Fine", "30:47"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["Fine", "30:47"] ] }
+    ],
+    "timeScope": { "headTime": "27:51", "tailTime": "30:47" }
+}
