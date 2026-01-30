@@ -1,0 +1,39 @@
+{
+    "file": "movie/wagner/tristan-barenboim-WEDO-noaudio.mp4",
+    "bigvideo": "https://www.youtube.com/watch?v=5cLh7bRY-Rk",
+    "waveimage": "movie/wagner/tristan-barenboim-WEDO-wave.png",
+    "spectrum":  "movie/wagner/tristan-barenboim-WEDO-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "Prelude (序曲)", "rehearsal": [
+            ["||6/8", "29s"],
+	    ["|", "1:41.9"],
+	    ["|", "1:55.4"],
+	    ["a tempo", "3:08.7"],
+	    ["B.NE", "3:49.2"],
+	    ["[A]", "3:54.6"],
+	    ["||Belebend", "4:46.0"],
+	    ["a tempo", "4:56.1"],
+	    ["B.OZE", "5:32.5"],
+	    ["B.NEEBW", "6:22.8"],
+	    ["[B]", "6:59.2"],
+	    ["B.ITB", "7:25.6"],
+	    ["[C]", "7:51.4"],
+	    ["B.AIZEZ", "7:56.9"],
+	    ["B.SAZ", "8:11.9"],
+	    ["|| SMB", "10:43.0"] ]
+	},
+	{ "comment": "Liebestod (愛の詩)", "rehearsal": [  
+	    ["|| SMB", "10:43.0"],
+	    ["[H]", "11:56.3"],
+	    ["|| EtwasB", "12:03.2"],
+	    ["[Gg]", "13:15.1"],
+	    ["in H", "13:33.3"],
+	    ["[Hh]", "14:15.9"],
+	    ["2/4", "15:06.5"],
+	    ["4/4", "15:08.1"],
+	    ["Finish", "17:23"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["Finish", "17:23"] ] }
+    ],
+    "timeScope": { "headTime": "29s", "tailTime": "17:23" }
+}
