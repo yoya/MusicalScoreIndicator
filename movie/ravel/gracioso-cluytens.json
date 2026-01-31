@@ -1,7 +1,7 @@
 {
     "file": "https://www.youtube.com/watch?v=2pgIfpdm3Q4a",
-    "waveimage": "movie/ravel-gracioso-cluytens-wave.png",
-    "spectrum":  "movie/ravel-gracioso-cluytens-spectrum.mp4",
+    "waveimage": "movie/ravel/gracioso-cluytens-wave.png",
+    "spectrum":  "movie/ravel/gracioso-cluytens-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1 movement", "rehearsal": [
             [0, "2s"], [1, "17.7s"], [2, "32.0s"],
