@@ -1,8 +1,8 @@
 {
-    "file": "movie/ravel-gracioso-reiner-noaudio.mp4",
+    "file": "movie/ravel/gracioso-reiner-noaudio.mp4",
     "bigvideo": "https://www.youtube.com/watch?v=vZzXuPOC6hc",
-    "waveimage": "movie/ravel-gracioso-reiner-wave.png",
-    "spectrum":  "movie/ravel-gracioso-reiner-spectrum.mp4",
+    "waveimage": "movie/ravel/gracioso-reiner-wave.png",
+    "spectrum":  "movie/ravel/gracioso-reiner-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1 movement", "rehearsal": [
             [0, "2s"], [1, "16.5s"], [2, "29.4s"],
