@@ -1,7 +1,7 @@
 {
     "file": "https://www.youtube.com/watch?v=t985AGC4hSE",
-    "waveimage": "movie/rachmaninoff-symphony3-3-maazel-wave.png",
-    "spectrum":  "movie/rachmaninoff-symphony3-3-maazel-spectrum.mp4",
+    "waveimage": "movie/rachmaninoff/symphony3-3-maazel-wave.png",
+    "spectrum":  "movie/rachmaninoff/symphony3-3-maazel-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1 movement", "rehearsal": [
             ["||", "1s"],

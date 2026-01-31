@@ -1,8 +1,8 @@
 {
-    "file": "movie/rachmaninoff-symphony3-pletnev-noaudio.mp4",
+    "file": "movie/rachmaninoff/symphony3-pletnev-noaudio.mp4",
     "bigvideo": "https://www.youtube.com/watch?v=IAmfulkOr0I",
-    "waveimage": "movie/rachmaninoff-symphony3-pletnev-wave.png",
-    "spectrum":  "movie/rachmaninoff-symphony3-pletnev-spectrum.mp4",
+    "waveimage": "movie/rachmaninoff/symphony3-pletnev-wave.png",
+    "spectrum":  "movie/rachmaninoff/symphony3-pletnev-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1 movement", "rehearsal": [
             ["||", "8.5s"],
