@@ -1,7 +1,7 @@
 {
     "file": "https://www.youtube.com/watch?v=O2n6ozyXurg",
-    "waveimage": "movie/debussy-images-Iberia-tilsonthomas-wave.png",
-    "spectrum":  "movie/debussy-images-Iberia-tilsonthomas-spectrum.mp4",
+    "waveimage": "movie/debussy/images-Iberia-tilsonthomas-wave.png",
+    "spectrum":  "movie/debussy/images-Iberia-tilsonthomas-spectrum.mp4",
     "timeSchedule": [
         { "comment": "2. Les parfums de la nuit", "rehearsal": [
             ["||", "7:14.5"], [37, "7:32.4"], [38, "8:07.5"],

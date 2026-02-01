@@ -1,7 +1,7 @@
 {
     "file": "https://www.youtube.com/watch?v=MDAzDUrNtdE",
-    "waveimage": "movie/debussy-images-Iberia-2-boulez-wave.png",
-    "spectrum":  "movie/debussy-images-Iberia-2-boulez-spectrum.mp4",
+    "waveimage": "movie/debussy/images-Iberia-2-boulez-wave.png",
+    "spectrum":  "movie/debussy/images-Iberia-2-boulez-spectrum.mp4",
     "timeSchedule": [
         { "comment": "2. Les parfums de la nuit", "rehearsal": [
             ["||", "2s"], [37, "16.1s"],  [38, "44.7s"],

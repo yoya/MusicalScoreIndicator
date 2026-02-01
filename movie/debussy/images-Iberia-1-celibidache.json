@@ -1,8 +1,8 @@
 {
-    "file": "movie/debussy-images-Iberia-celibidache-noaudio.mp4",
+    "file": "movie/debussy/images-Iberia-celibidache-noaudio.mp4",
     "bigvideo": "https://www.youtube.com/watch?v=5dxCdeR-Vxo",
-    "waveimage": "movie/debussy-images-Iberia-celibidache-wave.png",
-    "spectrum":  "movie/debussy-images-Iberia-celibidache-spectrum.mp4",
+    "waveimage": "movie/debussy/images-Iberia-celibidache-wave.png",
+    "spectrum":  "movie/debussy/images-Iberia-celibidache-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1. Par les rues et par les chemins", "rehearsal": [
             ["||", "6.4s"],

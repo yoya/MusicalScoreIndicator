@@ -1,7 +1,7 @@
 {
     "file": "https://www.youtube.com/watch?v=O2n6ozyXurg",
-    "waveimage": "movie/debussy-images-Iberia-tilsonthomas-wave.png",
-    "spectrum":  "movie/debussy-images-Iberia-tilsonthomas-spectrum.mp4",
+    "waveimage": "movie/debussy/images-Iberia-tilsonthomas-wave.png",
+    "spectrum":  "movie/debussy/images-Iberia-tilsonthomas-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1. Par les rues et par les chemins", "rehearsal": [
             ["||", "0.5s"],

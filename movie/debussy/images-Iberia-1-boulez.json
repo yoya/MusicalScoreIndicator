@@ -1,7 +1,7 @@
 {
     "file": "https://www.youtube.com/watch?v=EAbYVRKD1_A",
-    "waveimage": "movie/debussy-images-Iberia-1-boulez-wave.png",
-    "spectrum":  "movie/debussy-images-Iberia-1-boulez-spectrum.mp4",
+    "waveimage": "movie/debussy/images-Iberia-1-boulez-wave.png",
+    "spectrum":  "movie/debussy/images-Iberia-1-boulez-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1 movement", "rehearsal": [
             ["||", "8s"],

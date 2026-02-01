@@ -1,7 +1,7 @@
 {
     "file": "https://www.youtube.com/watch?v=JXzvH1_16cs",
-    "waveimage": "movie/debussy-images-Iberia-3-boulez-wave.png",
-    "spectrum":  "movie/debussy-images-Iberia-3-boulez-spectrum.mp4",
+    "waveimage": "movie/debussy/images-Iberia-3-boulez-wave.png",
+    "spectrum":  "movie/debussy/images-Iberia-3-boulez-spectrum.mp4",
     "timeSchedule": [
         { "comment": "3. Le matin d'un jour de fête", "rehearsal": [
             ["||", "0s"], [53, "9.3s"],

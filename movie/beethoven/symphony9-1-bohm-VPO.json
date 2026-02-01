@@ -1,8 +1,8 @@
 {
-    "file": "movie/beethoven-symphony9-bohm-VPO-noaudio.mp4",
+    "file": "movie/beethoven/symphony9-bohm-VPO-noaudio.mp4",
     "bigvideo": "https://www.youtube.com/watch?v=LKX1klg_P1Q",
-    "waveimage": "movie/beethoven-symphony9-bohm-VPO-wave.png",
-    "spectrum":  "movie/beethoven-symphony9-1-bohm-VPO-spectrum.mp4",
+    "waveimage": "movie/beethoven/symphony9-bohm-VPO-wave.png",
+    "spectrum":  "movie/beethoven/symphony9-1-bohm-VPO-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1st movement", "rehearsal": [
             ["2/4", "5s"], ["A", "01:02.9"], ["B", "2:00.8"],
