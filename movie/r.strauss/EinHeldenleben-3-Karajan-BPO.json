@@ -4,7 +4,7 @@
     "waveimage": "movie/r.strauss/EinHeldenleben-Karajan-BPO-wave.png",
     "spectrum":  "movie/r.strauss/EinHeldenleben-2-Karajan-BPO-spectrum.mp4",
     "timeSchedule": [
-        { "comment": "3rd movement", "rehearsal": [
+        { "comment": "3. Des Helden Gefahrtin (The hero's wife)", "rehearsal": [
 	    ["||", "7:56"],
 	    [22, "8:00.5"],
 	    [23, "8:30.5"],
@@ -19,7 +19,7 @@
 	    [31, "13:07.5"],
 	    [32, "14:11"] ]
         },
-        { "comment": "4th movement", "rehearsal": [
+        { "comment": "4. Thema der Siegesgewisheit (Certainty of victory)", "rehearsal": [ 
             [32, "14:10.5"],
 	    [33, "14:45.7"],
 	    ["||", "15:03.8"],

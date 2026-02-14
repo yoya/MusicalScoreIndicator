@@ -4,7 +4,7 @@
     "waveimage": "movie/r.strauss/EinHeldenleben-Karajan-BPO-wave.png",
     "spectrum":  "movie/r.strauss/EinHeldenleben-6-Karajan-BPO-spectrum.mp4",
     "timeSchedule": [
-        { "comment": "6th movement", "rehearsal": [
+	{ "comment": "6. Des Helden Friedenswerke (The hero's works of peace)", "rehearsal": [
             ["|", "28:44"],
 	    [84, "29:04.8"],
 	    ["3/4", "29:30.4"],

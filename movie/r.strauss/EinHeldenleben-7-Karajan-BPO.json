@@ -4,7 +4,7 @@
     "waveimage": "movie/r.strauss/EinHeldenleben-Karajan-BPO-wave.png",
     "spectrum":  "movie/r.strauss/EinHeldenleben-7-Karajan-BPO-spectrum.mp4",
     "timeSchedule": [
-	{ "comment": "7th movement", "rehearsal": [
+	{ "comment": "7. Des Helden Weltflucht und Vollendung (The hero's withdrawal from the world)", "rehearsal": [
 	    ["|", "33:40.8"], [93, "33:51.8"],
 	    ["3/4", "34:14.2"],
 	    [94, "34:31.9"],
@@ -18,7 +18,7 @@
 	    [101, "37:46.8"],
 	    ["|| (Langsam)", "38:13"] ]
 	},
-        { "comment": "8th movement", "rehearsal": [
+        { "comment": "8. Entsagung (Renunciation)", "rehearsal": [
 	    ["|| (Langsam)", "38:13"],
 	    [102, "38:51.1"],
 	    [103, "39:38.6"],
