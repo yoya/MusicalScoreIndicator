@@ -1,0 +1,27 @@
+{
+    "file": "https://www.youtube.com/watch?v=OHGqsXVH1ng",
+    "waveimage": "movie/r.strauss/EinHeldenleben-5-maazel-cleveland-wave.png",
+    "spectrum":  "movie/r.strauss/EinHeldenleben-5-maazel-cleveland-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "5. Des Helden Friedenswerke (The Hero's Works Of Peace)", "rehearsal": [
+            ["|", "0s"],
+	    [80, "1.0s"],
+	    [81, "14.8s"],
+	    [82, "30.4s"],
+	    [83, "45.9s"],
+	    ["|", "54.7s"],
+	    [84, "1:14.0"],
+	    ["3/4", "1:38.6"],
+	    [85, "1:56.7"],
+	    ["||", "2:14.5"],
+	    [86, "2:35.8"], [87, "2:55.4"], [88, "3:15.9"],
+	    [89, "3:46.7"], [90, "4:12.8"], [91, "4:40.1"],
+	    [92, "5:03.9"],
+	    ["|", "5:22.4"],
+	    [93, "5:31.5"],
+	    ["||", "5:49"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["||", "5:49"] ] }
+    ],
+    "timeScope": { "headTime": "0s", "tailTime": "5:49" }
+}

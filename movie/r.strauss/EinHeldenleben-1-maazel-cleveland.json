@@ -1,0 +1,17 @@
+{
+    "file": "https://www.youtube.com/watch?v=hsRcKgX2sKE",
+    "waveimage": "movie/r.strauss/EinHeldenleben-1-maazel-cleveland-wave.png",
+    "spectrum":  "movie/r.strauss/EinHeldenleben-1-maazel-cleveland-spectrum.mp4",
+    "timeSchedule": [
+	{ "comment": "1. Der Held (The Hero)", "rehearsal": [
+            ["||", "1s"], [1, "29.1s"],
+	    [2, "46.7s"], [3, "1:03.9"], [4, "1:21.1"],
+	    [5, "1:38.6"], [6, "1:54.2"], [7, "2:15.4"], [8, "2:29.6"],
+	    [9, "2:47.0"],
+	    [10, "3:04.4"], [11, "3:17.6"], [12, "3:36.4"], [13, "4:03.5"],
+	    ["||", "4:21"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["||", "4:21"] ] }
+    ],
+    "timeScope": { "headTime": "0s", "tailTime": "4:21" }
+}

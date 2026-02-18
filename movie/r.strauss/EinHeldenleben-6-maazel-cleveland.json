@@ -1,0 +1,35 @@
+{
+    "file": "https://www.youtube.com/watch?v=C_hQ--Eii-Y",
+    "waveimage": "movie/r.strauss/EinHeldenleben-6-maazel-cleveland-wave.png",
+    "spectrum":  "movie/r.strauss/EinHeldenleben-6-maazel-cleveland-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "6. Des Helden Weltflucht und Vollendung (The Hero's Retreat From The World & Fulfillment)", "rehearsal": [
+            ["3/4", "0s"],
+	    [94, "18.7s"],
+	    ["||C", "23.8s"],
+	    [95, "34.9s"],
+	    [96, "49.0s"],
+	    [97, "1:01.0"],
+	    ["||", "1:04.7"],
+	    [98, "1:24.5"],
+	    [99, "1:55.3"],
+	    [100, "2:14.4"],
+	    [101, "2:54.2"],
+	    ["|| (Langsam)", "3:15.3"] ]
+	},
+	{ "comment": "6.b Entsagung (Renunciation)", "rehearsal": [
+	    ["|| (Langsam)", "3:15.3"],
+	    [102, "3:50.6"],
+	    [103, "4:29.4"],
+	    [104, "4:46.8"],
+	    [105, "5:07.3"],
+	    [106, "5:25.6"],
+	    [107, "6:03.1"],
+	    [108, "6:41.2"],
+	    [109, "7:53.8"],
+	    ["||", "9:45"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["||", "9:45"] ] }
+    ],
+    "timeScope": { "headTime": "0s", "tailTime": "9:45" }
+}

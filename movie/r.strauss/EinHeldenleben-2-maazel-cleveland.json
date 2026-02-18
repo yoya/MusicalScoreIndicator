@@ -1,0 +1,15 @@
+{
+    "file": "https://www.youtube.com/watch?v=82GSoLcKe6A",
+    "waveimage": "movie/r.strauss/EinHeldenleben-2-maazel-cleveland-wave.png",
+    "spectrum":  "movie/r.strauss/EinHeldenleben-2-maazel-cleveland-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "2. Des Helden Widersacher (The Hero's Adversaries)", "rehearsal": [
+            ["||", "0s"], [14, "15.7s"], [15, "29.0s"],
+	    ["4/4", "50.0s"], [16, "1:21.7"], [17, "1:59.1"], [18, "2:25.6"],
+	    [19, "2:58.3"], [20, "3:16.05"], [21, "3:32.7"],
+	    ["||", "3:43"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["||", "3:43"] ] }
+    ],
+    "timeScope": { "headTime": "0s", "tailTime": "3:43" }
+}
