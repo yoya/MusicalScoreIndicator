@@ -1,0 +1,35 @@
+{
+    "file": "https://www.youtube.com/watch?v=b4J3_4EQ_s4",
+    "waveimage": "movie/r.strauss/EinHeldenleben-6-reiner-chicago-wave.png",
+    "spectrum":  "movie/r.strauss/EinHeldenleben-6-reiner-chicago-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "6. Des Helden Weltflucht und Vollendung (The Hero's Retreat From The World & Fulfillment)", "rehearsal": [
+            ["3/4", "0s"],
+	    [94, "18.6s"],
+	    ["||C", "24.2s"],
+	    [95, "35.6s"],
+	    [96, "49.3s"],
+	    [97, "1:01.0"],
+	    ["||", "1:05.7"],
+	    [98, "1:26.2"],
+	    [99, "1:57.7"],
+	    [100, "2:19.6"],
+	    [101, "3:13.5"],
+	    ["|| (Langsam)", "3:41.7"] ]
+	},
+	{ "comment": "6.b Entsagung (Renunciation)", "rehearsal": [
+	    ["|| (Langsam)", "3:41.7"],
+	    [102, "4:18.2"],
+	    [103, "5:07.5"],
+	    [104, "5:25.3"],
+	    [105, "5:47.6"],
+	    [106, "6:11.6"],
+	    [107, "6:50.5"],
+	    [108, "7:27.8"],
+	    [109, "8:47.5"],
+	    ["||", "10:54"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["||", "10:54"] ] }
+    ],
+    "timeScope": { "headTime": "0s", "tailTime": "10:54" }
+}

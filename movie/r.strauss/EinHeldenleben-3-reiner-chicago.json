@@ -1,0 +1,38 @@
+{
+    "file": "https://www.youtube.com/watch?v=jRs1VrKVaAs",
+    "waveimage": "movie/r.strauss/EinHeldenleben-3-reiner-chicago-wave.png",
+    "spectrum":  "movie/r.strauss/EinHeldenleben-3-reiner-chicago-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "3. Des Helden Gefahrtin (The hero's wife)", "rehearsal": [
+            ["||", "0s"],
+	    [22, "4.3s"],
+	    [23,"36.3s"],
+	    [24, "1:05"],
+	    [25, "1:20.9"],
+	    ["4/4", "2:31.6"],
+	    [27, "2:41.5"],
+	    [28, "3:02.6"],
+	    [29, "4:06.4"],
+	    [30, "4:28.1"],
+	    [31, "5:11.4"],
+	    [32, "6:17.1"] ]
+	},
+	{ "comment": "3.b Thema der Siegesgewisheit (Certainty of victory)", "rehearsal": [
+	    [32, "6:17.1"],
+	    [33, "6:48.0"],
+	    ["||", "7:02.2"],
+	    [34, "7:09.4"],
+	    ["||35", "7:37.0"],
+	    [36, "8:07.6"],
+	    [37, "8:30.8"],
+	    [38, "8:54.8"],
+	    [39, "9:34.5"],
+	    [40, "10:21.4"],
+	    [41, "11:04.3"],
+	    ["4/4", "11:25.1"],
+	    ["||", "11:57"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["||", "11:57"] ] }
+    ],
+    "timeScope": { "headTime": "0s", "tailTime": "11:57" }
+}

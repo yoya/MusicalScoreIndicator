@@ -1,0 +1,19 @@
+{
+    "file": "https://www.youtube.com/watch?v=Vkvj7zGqe2w",
+    "waveimage": "movie/r.strauss/EinHeldenleben-5-reiner-chicago-wave.png",
+    "spectrum":  "movie/r.strauss/EinHeldenleben-5-reiner-chicago-spectrum.mp4",
+    "timeSchedule": [
+        { "comment": "5. Des Helden Friedenswerke (The Hero's Works Of Peace)", "rehearsal": [
+            ["3/4", "0s"],
+	    [85, "17.2s"],
+	    ["||", "34.5s"],
+	    [86, "1:01.3"], [87, "1:24.5"], [88, "1:46.6"],
+	    [89, "2:18.5"], [90, "2:45.0"], [91, "3:11.6"],
+	    [92, "3:40.3"],
+	    ["|", "4:05.5"], [93, "4:19.5"],
+	    ["3/4", "4:39"] ]
+        },
+        { "comment": "terminater", "rehearsal": [ ["3/4", "4:39"] ] }
+    ],
+    "timeScope": { "headTime": "0s", "tailTime": "4:39" }
+}
