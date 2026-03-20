@@ -22,6 +22,7 @@ const context = {
     tailTime: 0.0,  // タイムスケジュール表示部の末尾
     duration: 0.0,  // 動画の全体時間
     hitTime: 0.0,  // クリックで指定した時間
+    timeScheduleOffset: 0.0, // 動画の一部を切り出した時の先頭の元の時間
 }
 
 let config;  // 設定データ
@@ -44,6 +45,21 @@ if ('timeScope' in config) {
     context.headTime = stringToTime(config.timeScope.headTime);
     context.tailTime = stringToTime(config.timeScope.tailTime);
 }
+if ('timeScheduleOffset' in config) {
+    const offset = stringToTime(config.timeScheduleOffset);
+    context.timeScheduleOffset = offset;
+    for (const ti in config.timeSchedule) {
+	const t = config.timeSchedule[ti];
+	for (const ri in t.rehearsal) {
+	    const [rehearsal, timeStr] = t.rehearsal[ri];
+	    const tt = stringToTime(timeStr);
+	    t.rehearsal[ri][1] = (tt - offset) + "s"
+	}
+    }
+    context.headTime -= offset;
+    context.tailTime -= offset;
+}
+
 
 let boot = 0;
 document.addEventListener("DOMContentLoaded", (e) => {
@@ -221,13 +237,13 @@ function onPause(e) {  // 動画 pause 状態になった時に呼ぶ
 
 function currentVideo() {  // 現在時刻を追う
     const currentTime = masterVideo.getCurrentTime();
-    $("#currentTime").innerText = timeToString(currentTime);
+    $("#currentTime").innerText = timeToString(currentTime + context.timeScheduleOffset);
     context.currentTime = currentTime;
 }
 
 function durationVideo() {  // duration が確定する時
     const duration = masterVideo.getDuration();
-    $("#durationTime").innerText = timeToString(duration);
+    $("#durationTime").innerText = timeToString(duration + context.timeScheduleOffset);
     context.duration = duration;
     if (context.tailTime === 0) {
 	context.tailTime = duration;
@@ -238,7 +254,7 @@ function durationVideo() {  // duration が確定する時
 }
 
 function hitVideo(hitTime) {  // progressBar で時間を指示された
-    $("#hitTime").innerText = timeToString(hitTime);
+    $("#hitTime").innerText = timeToString(hitTime + context.timeScheduleOffset);
     context.hitTime = hitTime;
 }
 
