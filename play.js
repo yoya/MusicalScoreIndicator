@@ -603,7 +603,7 @@ function main() {
         context.hitTime = 0;
     });
     masterVideo.on("volumechange", () => {
-	$("#volumeRange").value = masterVideo.volume * 100;
+	$("#volumeRange").value = masterVideo.getVolume();
     })
     /*
      *
@@ -703,4 +703,6 @@ function main() {
     $("#volumeRange").on("input", e => {
 	masterVideo.setVolume($("#volumeRange").value);
     })
+    // 初期化
+    $("#volumeRange").value = masterVideo.getVolume();
 }
