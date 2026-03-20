@@ -1,8 +1,12 @@
 #! /bin/bash
-# Usage: sh wave2movie.sh foo.wav foo.mp4  # foo.mp4 spectrum & wave show
 # require) ffmpeg
 
 set -euo pipefail
+
+if [ $# -ne 2 ]; then
+    echo "Usage: sh wave2movie.sh foo.wav foo.mp4  # foo.mp4 spectrum & wave show"
+    exit 1
+fi
 
 i=$1
 o=$2

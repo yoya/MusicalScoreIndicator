@@ -1,8 +1,12 @@
 #! /bin/bash
-# Usage: sh movie.sh foo  # foo.mp4 movie setup
 # require) ffmpeg, ImageMagick, zopflipng
 
 set -euo pipefail
+
+if [ $# -ne 1 ]; then
+    echo "Usage: sh movie.sh foo  # foo.mp4 movie setup"
+    exit 1
+fi
 
 b=$1
 
