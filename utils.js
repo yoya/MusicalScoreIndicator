@@ -30,6 +30,8 @@ const _$ = e => {
 			    case 2: //  => pause
 				e.dispatchEvent(new Event("pause"));
 				break;
+			    default:
+				// console.debug("event state:", state);
 			    }
 			    playerContext.state = state;
 			}
@@ -49,6 +51,7 @@ const _$ = e => {
 	    e.seekTo = (t) => { player.seekTo(t); }
 	    e.getCurrentTime = () => { return player.getCurrentTime(); }
 	    e.getDuration = () => { return player.getDuration(); }
+	    e.setVolume = (v) => { return player.setVolume(v); }
 	} else {
 	    // 通常の video 要素
 	    e.src = s
@@ -58,6 +61,7 @@ const _$ = e => {
 	    if (! e.getDuration) { e.getDuration = () => e.duration }
 	    if (! e.playVideo) { e.playVideo = e.play }
 	    if (! e.pauseVideo) { e.pauseVideo = e.pause }
+	    if (! e.setVolume) { e.setVolume = (v) => { e.volume = v/100; } }
 	}
     }
     // jQuery 風の eventListener

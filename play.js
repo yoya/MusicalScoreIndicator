@@ -602,6 +602,9 @@ function main() {
         onPause();
         context.hitTime = 0;
     });
+    masterVideo.on("volumechange", () => {
+	$("#volumeRange").value = masterVideo.volume * 100;
+    })
     /*
      *
      */
@@ -697,4 +700,7 @@ function main() {
 	    videoCluster.playVideo();
         }, 200);
     });
+    $("#volumeRange").on("input", e => {
+	masterVideo.setVolume($("#volumeRange").value);
+    })
 }
