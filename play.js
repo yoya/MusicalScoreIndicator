@@ -207,6 +207,11 @@ function onPlaying(e) {  // 動画 play 状態になった時に呼ぶ
     // console.debug("onPlaying", {e});
     $("#playButton").innerText = "Pause";
     $("#playButton").style.backgroundColor = "#AFA";
+    // 最後まで再生していたら、頭に戻る
+    const currentTime = masterVideo.getCurrentTime();
+    if (currentTime >= context.tailTime) {
+	setCurrentTime(context.headTime);
+    }
     currentVideo();
     videoCluster.playVideo({slaveonly:true});
     context.playing = true;
