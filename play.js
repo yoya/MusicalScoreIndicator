@@ -8,6 +8,7 @@ var tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+let iframe_index = null;
 
 /*
  * https://developer.mozilla.org/ja/docs/Web/API/URLSearchParams
@@ -37,6 +38,10 @@ function getHashParam(p) {
     const url = new URL(window.location);
     return url.searchParams.get(p);
 }
+function setHashParam(p, v) {
+    const url = new URL(window.location);
+    return url.searchParams.set(p, v);
+}
 
 // 設定の JSON を取得して config に代入する
 const url = getHashParam("c");
@@ -64,8 +69,12 @@ if ('timeScheduleOffset' in config) {
 let boot = 0;
 document.addEventListener("DOMContentLoaded", (e) => {
     $("#spectrum").setSource(config.spectrum);
-    init()
+    init();
+    const map = new Map();
+    map.set('method', 'loaded');
+    window.parent.postMessage(map, "*");
 });
+
 function onYouTubeIframeAPIReady() { init(); }
 
 function init() {
@@ -558,12 +567,15 @@ function tickFunction() {
     // console.debug("tickFunction");
     const currentTime = masterVideo.getCurrentTime();
     if (context.playing) {
+	if (currentTime < context.headTime) {
+	    setCurrentTime(context.headTime);
+	}
         currentVideo();
         rehearsalVideo();
         showProgressBar();
 	videoCluster.syncByMaster();
 	if (currentTime > context.tailTime) {
-	    videoCluster.pauseVideo();
+	    finished();
 	}
     }
 }
@@ -604,8 +616,7 @@ function main() {
     masterVideo.on("playing", onPlaying);
     masterVideo.on("pause", onPause);
     masterVideo.on("ended", () => {
-        onPause();
-        context.hitTime = 0;
+	finished();
     });
     masterVideo.on("volumechange", () => {
 	$("#volumeRange").value = masterVideo.getVolume();
@@ -711,3 +722,43 @@ function main() {
     // 初期化
     $("#volumeRange").value = masterVideo.getVolume();
 }
+
+function finished() {
+    videoCluster.pauseVideo();
+    context.hitTime = 0;
+    if (iframe_index != null) {
+	const map = new Map();
+	map.set('method', 'finished');
+	map.set('index', iframe_index);
+	window.parent.postMessage(map, "*");
+    }
+}
+
+window.addEventListener("message", (message) => {
+    console.log("play", message.data);
+    const map = message.data;
+    const method = map.get("method");
+    if (method == "index") {
+	iframe_index = map.get('index');
+    } else if (method == "play") {
+	const startTime = map.get('startTime');
+	// console.log({method, startTime});
+	setHashParam("t", startTime);
+	const _play = function() {
+	    if (videoCluster && videoCluster.getMaster().paused) {
+		setCurrentTime(startTime);
+		context.hitTime = startTime;
+		showProgressBar();
+		showRehearsalProgressBar();
+		// 待たずに play しても無駄
+		context.playing = true;
+		setTimeout(() => {
+		    videoCluster.playVideo();
+		}, 500);
+	    } else {
+		setTimeout(_play, 1);
+	    }
+	}
+	setTimeout(_play, 1);
+    }
+});
