@@ -24,6 +24,17 @@ function init() {
 	    if (iframesLoadedCount == iframes.length) {
 		iframeLoadedAll();
 	    }
+	} else if (method == "volume") {
+	    const index = map.get("index");
+	    const volume = map.get("volume");
+	    for (let i = 0, n = iframes.length; i < n; i++) {
+		if ((i+1) != index) {
+		    map.set('method', 'volume');
+		    map.set('volume', volume);
+		    const iframe = iframes[i];
+		    iframe.contentWindow.postMessage(map, "*");
+		}
+	    }
 	} else if (method == "finished") {
 	    const index = map.get("index");
 	    const iframe = iframes[index - 1 + 1];

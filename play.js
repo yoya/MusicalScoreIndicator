@@ -619,7 +619,15 @@ function main() {
 	finished();
     });
     masterVideo.on("volumechange", () => {
-	$("#volumeRange").value = masterVideo.getVolume();
+	const volume = masterVideo.getVolume();
+	$("#volumeRange").value = volume;
+	if (iframe_index != null) {
+	    const map = new Map();
+	    map.set('method', 'volume');
+	    map.set('index', iframe_index);
+	    map.set('volume', volume);
+	    window.parent.postMessage(map, "*");
+	}
     })
     /*
      *
@@ -760,5 +768,9 @@ window.addEventListener("message", (message) => {
 	    }
 	}
 	setTimeout(_play, 1);
+    } else if (method == "volume") {
+	const volume = map.get('volume');
+	masterVideo.setVolume(volume);
+	// $("#volumeRange").value = volume;
     }
 });
