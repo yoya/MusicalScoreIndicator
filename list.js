@@ -37,7 +37,7 @@ function init() {
 	    }
 	} else if (method == "finished") {
 	    const index = map.get("index");
-	    const iframe = iframes[index - 1 + 1];
+	    const iframe = iframes[index - 1 + 1]; // next iframe
 	    if (iframe) {
 		map.set('method', 'play');
 		map.set('startTime', 0);
