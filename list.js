@@ -31,6 +31,7 @@ function init() {
 		map.set('method', 'play');
 		map.set('startTime', 0);
 		iframe.contentWindow.postMessage(map, "*");
+		iframe.scrollIntoView({ behavior: 'smooth' });
 	    }
 	}
     });
