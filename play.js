@@ -34,17 +34,41 @@ const TICK2 = 1000/24;  // 24 fps (0.041666... sec)
 let timerId = null;
 let timerId2 = null;  //  リハーサルプログレスは小刻み更新
 
-function getHashParam(p) {
-    const url = new URL(window.location);
-    return url.searchParams.get(p);
+
+class URLHashParams {
+    constructor() {
+	// search parameter と同じ形式。#a=x&b=y&...  substring で頭の # を削る
+	const hash_payload = new URL(window.location).hash.substring(1);
+	this.hashParam = new URLSearchParams(hash_payload);
+	console.log("hashParams", this.hashParam.entries(), this.hashParam.toString());
+    }
+    toString() { return this.hashParam.toString() }
+    has(p)     { return this.hashParam.has(p)     }
+    get(p)     { return this.hashParam.get(p)     }
+    set(p, v)  { return this.hashParam.set(p ,v) }
 }
-function setHashParam(p, v) {
+
+const hashParams = new URLHashParams();
+
+function getURLParams(p) {
     const url = new URL(window.location);
-    return url.searchParams.set(p, v);
+    console.log("hashParams.has(p)", hashParams.has(p));
+    if (hashParams.has(p)) {
+	return hashParams.get(p);
+    } else {
+	return url.searchParams.get(p);
+    }
+}
+
+function setURLParams(p, v) {
+    const url = new URL(window.location);
+    url.searchParams.set(p, v);
+    hashParams.set(p, v);
+    window.location.hash = '#' + hashParams.toString();  // URL に反映
 }
 
 // 設定の JSON を取得して config に代入する
-const url = getHashParam("c");
+const url = getURLParams("c");
 config = loadFile(url);
 if ('timeScope' in config) {
     context.headTime = stringToTime(config.timeScope.headTime);
@@ -269,7 +293,9 @@ function durationVideo() {  // duration が確定する時
 
 function hitVideo(hitTime) {  // progressBar で時間を指示された
     $("#hitTime").innerText = timeToString(hitTime + context.timeScheduleOffset);
+    setURLParams("t", Math.round(hitTime*10)/10+"s"); // URL hash に反映
     context.hitTime = hitTime;
+    setCurrentTime(hitTime);
 }
 
 function getRehearsalIdx(currentTime) {
@@ -587,7 +613,7 @@ function tickFunction2() {
 }
 
 function main() {
-    const ts = getHashParam("t");
+    const ts = getURLParams("t");
     let startTime = (ts)? stringToTime(ts): 0;
     if (startTime < context.headTime) {
 	startTime = context.headTime;
@@ -743,7 +769,7 @@ function finished() {
 }
 
 window.addEventListener("message", (message) => {
-    console.log("play", message.data);
+    // console.log("play", message.data);
     const map = message.data;
     const method = map.get("method");
     if (method == "index") {
@@ -751,7 +777,7 @@ window.addEventListener("message", (message) => {
     } else if (method == "play") {
 	const startTime = map.get('startTime');
 	// console.log({method, startTime});
-	setHashParam("t", startTime);
+	setURLParams("t", startTime);
 	const _play = function() {
 	    if (videoCluster && videoCluster.getMaster().paused) {
 		setCurrentTime(startTime);
