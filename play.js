@@ -40,7 +40,6 @@ class URLHashParams {
 	// search parameter と同じ形式。#a=x&b=y&...  substring で頭の # を削る
 	const hash_payload = new URL(window.location).hash.substring(1);
 	this.hashParam = new URLSearchParams(hash_payload);
-	console.log("hashParams", this.hashParam.entries(), this.hashParam.toString());
     }
     toString() { return this.hashParam.toString() }
     has(p)     { return this.hashParam.has(p)     }
@@ -52,7 +51,6 @@ const hashParams = new URLHashParams();
 
 function getURLParams(p) {
     const url = new URL(window.location);
-    console.log("hashParams.has(p)", hashParams.has(p));
     if (hashParams.has(p)) {
 	return hashParams.get(p);
     } else {
