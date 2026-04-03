@@ -34,6 +34,16 @@ function init() {
 		    iframe.contentWindow.postMessage(map, "*");
 		}
 	    }
+	} else if (method == "playstarted") {
+	    const index = map.get("index");
+	    console.log({index});
+	    for (let i = 0, n = iframes.length; i < n; i++) {
+		if ((i+1) != index) {
+		    map.set('method', 'pause');
+		    const iframe = iframes[i];
+		    iframe.contentWindow.postMessage(map, "*");
+		}
+	    }
 	} else if (method == "finished") {
 	    const index = map.get("index");
 	    const iframe = iframes[index - 1 + 1]; // next iframe

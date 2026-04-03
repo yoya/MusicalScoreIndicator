@@ -643,9 +643,7 @@ function main() {
     masterVideo.on("volumechange", () => {
 	const volume = masterVideo.getVolume();
 	$("#volumeRange").value = volume;
-	if (iframe_index != null) {
-	    sendMessage('volume', {'index': iframe_index, 'volume': volume});
-	}
+	sendMessage('volume', {'volume': volume});
     })
     /*
      *
@@ -676,6 +674,7 @@ function main() {
 	    videoCluster.pauseVideo();
         } else {
 	    videoCluster.playVideo();
+	    sendMessage('playstarted', {});
         }
     });
     $("#prevButton").on("click", (e) => {
@@ -753,13 +752,16 @@ function finished() {
     videoCluster.pauseVideo();
     context.hitTime = 0;
     if (iframe_index != null) {
-	sendMessage('finished', {'index': iframe_index});
+	sendMessage('finished', {});
     }
 }
 
 function sendMessage(method, params) {
     const map = new Map();
     map.set('method', method);
+    if (iframe_index != null) {
+	map.set('index', iframe_index);
+    }
     for (const k in params) {
 	const v = params[k];
 	map.set(k, v);
@@ -787,12 +789,15 @@ window.addEventListener("message", (message) => {
 		context.playing = true;
 		setTimeout(() => {
 		    videoCluster.playVideo();
+		    sendMessage('playstarted', {});
 		}, 500);
 	    } else {
 		setTimeout(_play, 1);
 	    }
 	}
 	setTimeout(_play, 1);
+    } else if (method == "pause") {
+	videoCluster.pauseVideo();
     } else if (method == "volume") {
 	const volume = map.get('volume');
 	masterVideo.setVolume(volume);
