@@ -94,9 +94,7 @@ let boot = 0;
 document.addEventListener("DOMContentLoaded", (e) => {
     $("#spectrum").setSource(config.spectrum);
     init();
-    const map = new Map();
-    map.set('method', 'loaded');
-    window.parent.postMessage(map, "*");
+    sendMessage('loaded', {});
 });
 
 function onYouTubeIframeAPIReady() { init(); }
@@ -648,11 +646,7 @@ function main() {
 	const volume = masterVideo.getVolume();
 	$("#volumeRange").value = volume;
 	if (iframe_index != null) {
-	    const map = new Map();
-	    map.set('method', 'volume');
-	    map.set('index', iframe_index);
-	    map.set('volume', volume);
-	    window.parent.postMessage(map, "*");
+	    sendMessage('volume', {'index': iframe_index, 'volume': volume});
 	}
     })
     /*
@@ -761,11 +755,18 @@ function finished() {
     videoCluster.pauseVideo();
     context.hitTime = 0;
     if (iframe_index != null) {
-	const map = new Map();
-	map.set('method', 'finished');
-	map.set('index', iframe_index);
-	window.parent.postMessage(map, "*");
+	sendMessage('finished', {'index': iframe_index});
     }
+}
+
+function sendMessage(method, params) {
+    const map = new Map();
+    map.set('method', method);
+    for (const k in params) {
+	const v = params[k];
+	map.set(k, v);
+    }
+    window.parent.postMessage(map, "*");
 }
 
 window.addEventListener("message", (message) => {
