@@ -13,10 +13,9 @@ let iframes = null;
 let iframesLoadedCount = 0;
 
 function init() {
-    console.log("init()");
     iframes = document.querySelectorAll("iframe");
     window.addEventListener("message", (message) => {
-	console.log("list", message.data);
+	// console.log("list", message.data);
 	const map = message.data;
 	const method = map.get("method");
 	if (method == "loaded") {
