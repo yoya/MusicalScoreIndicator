@@ -643,7 +643,8 @@ function main() {
 	    videoCluster.pauseVideo();
         } else {
 	    videoCluster.playVideo();
-	    sendMessage('playstarted', {});
+	    const t = masterVideo.getCurrentTime();
+	    sendMessage('playstarted', {currentTime: t});
         }
     });
     $("#prevButton").on("click", (e) => {
@@ -738,13 +739,28 @@ function sendMessage(method, params) {
     window.parent.postMessage(map, "*");
 }
 
+// parent から message 受信
 window.addEventListener("message", (message) => {
-    // console.log("play", message.data);
+    console.debug("play listen:", iframe_index, message.data);
     const map = message.data;
     const method = map.get("method");
     if (method == "index") {
 	iframe_index = map.get('index');
-    } else if (method == "play") {
+    } else if (method == "seek") {  // 初期表示
+	const startTime = map.get('startTime');
+	setURLParams("t", startTime);
+	const _seek = function() {
+	    if (videoCluster && videoCluster.getMaster().paused) {
+		setCurrentTime(startTime);
+		context.hitTime = startTime;
+		showProgressBar();
+		showRehearsalProgressBar();
+	    } else {
+		setTimeout(_seek, 100);
+	    }
+	}
+	_seek();
+    } else if (method == "play") {  // 連続プレイ
 	const startTime = map.get('startTime');
 	// console.log({method, startTime});
 	setURLParams("t", startTime);

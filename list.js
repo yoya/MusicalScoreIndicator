@@ -31,7 +31,11 @@ function init() {
 	    }
 	} else if (method == "playstarted") {
 	    const index = map.get("index");
+	    const currentTime = map.get("currentTime");
 	    console.log({index});
+	    setURLParams("i", index);
+	    setURLParams("t", currentTime);
+	    const t = getURLParams("t");
 	    for (let i = 0, n = iframes.length; i < n; i++) {
 		if ((i+1) != index) {
 		    map.set('method', 'pause');
@@ -62,14 +66,15 @@ function iframeLoadedAll() {
 	map.set('index', i+1);
 	iframe.contentWindow.postMessage(map, "*");
     }
-    const i = Number(getHashParam("i"));
-    const t = getHashParam("t");
+    const i = Number(getURLParams("i"));
+    const t = getURLParams("t");
     if (i > 0) {
 	const startTime = (t)? stringToTime(t): 0;
 	const iframe = iframes[i-1];
 	const map = new Map();
-	map.set('method', 'play');
+	map.set('method', 'seek');
 	map.set('startTime', startTime);
 	iframe.contentWindow.postMessage(map, "*");
+	iframe.scrollIntoView({ behavior: 'smooth' });
     }
 }
