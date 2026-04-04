@@ -59,10 +59,13 @@ function getURLParams(p) {
 }
 
 function setURLParams(p, v) {
-    const url = new URL(window.location);
-    url.searchParams.set(p, v);
     hashParams.set(p, v);
-    window.location.hash = '#' + hashParams.toString();  // URL に反映
+    // window.location.hash = '#' + hashParams.toString();  // URL に反映
+    // window.location.hash だと hit の度に history が先に進む。
+    // 具体的には操作した数だけ back しないと戻れなくなって不便。
+    const loc = window.location;
+    const u = loc.protocol + "//" + loc.host + loc.pathname + loc.search + "#" + hashParams.toString();  // URL に反映
+    history.replaceState(null, "", u);
 }
 
 // 設定の JSON を取得して config に代入する
