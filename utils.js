@@ -1,5 +1,41 @@
 "use strict";
 
+class URLHashParams {
+    constructor() {
+	// search parameter と同じ形式。#a=x&b=y&...  substring で頭の # を削る
+	const hash_payload = new URL(window.location).hash.substring(1);
+	this.hashParam = new URLSearchParams(hash_payload);
+    }
+    toString() { return this.hashParam.toString() }
+    has(p)     { return this.hashParam.has(p)     }
+    get(p)     { return this.hashParam.get(p)     }
+    set(p, v)  { return this.hashParam.set(p ,v) }
+}
+
+const hashParams = new URLHashParams();
+
+function getURLParams(p) {
+    const url = new URL(window.location);
+    if (hashParams.has(p)) {
+	return hashParams.get(p);
+    } else {
+	return url.searchParams.get(p);
+    }
+}
+
+function setURLParams(p, v) {
+    hashParams.set(p, v);
+    if (false) {
+    // window.location.hash だと hit の度に history が先に進む。
+    // 具体的には操作した数だけ back しないと戻れなくなって不便。
+	window.location.hash = '#' + hashParams.toString();  // URL に反映
+    } else {
+	const loc = window.location;
+	const u = loc.protocol + "//" + loc.host + loc.pathname + loc.search + "#" + hashParams.toString();  // URL に反映
+	history.replaceState(null, "", u);
+    }
+}
+
 const _$ = e => {
     e.setSource = (s) => {
 	const youtubePrefix = "https://www.youtube.com/watch?v=";

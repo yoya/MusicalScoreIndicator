@@ -4,11 +4,6 @@ document.addEventListener("DOMContentLoaded", (e) => {
     init()
 });
 
-function getHashParam(p) {
-    const url = new URL(window.location);
-    return url.searchParams.get(p);
-}
-
 let iframes = null;
 let iframesLoadedCount = 0;
 

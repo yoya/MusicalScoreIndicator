@@ -34,40 +34,6 @@ const TICK2 = 1000/24;  // 24 fps (0.041666... sec)
 let timerId = null;
 let timerId2 = null;  //  リハーサルプログレスは小刻み更新
 
-
-class URLHashParams {
-    constructor() {
-	// search parameter と同じ形式。#a=x&b=y&...  substring で頭の # を削る
-	const hash_payload = new URL(window.location).hash.substring(1);
-	this.hashParam = new URLSearchParams(hash_payload);
-    }
-    toString() { return this.hashParam.toString() }
-    has(p)     { return this.hashParam.has(p)     }
-    get(p)     { return this.hashParam.get(p)     }
-    set(p, v)  { return this.hashParam.set(p ,v) }
-}
-
-const hashParams = new URLHashParams();
-
-function getURLParams(p) {
-    const url = new URL(window.location);
-    if (hashParams.has(p)) {
-	return hashParams.get(p);
-    } else {
-	return url.searchParams.get(p);
-    }
-}
-
-function setURLParams(p, v) {
-    hashParams.set(p, v);
-    // window.location.hash = '#' + hashParams.toString();  // URL に反映
-    // window.location.hash だと hit の度に history が先に進む。
-    // 具体的には操作した数だけ back しないと戻れなくなって不便。
-    const loc = window.location;
-    const u = loc.protocol + "//" + loc.host + loc.pathname + loc.search + "#" + hashParams.toString();  // URL に反映
-    history.replaceState(null, "", u);
-}
-
 // 設定の JSON を取得して config に代入する
 const url = getURLParams("c");
 config = loadFile(url);
