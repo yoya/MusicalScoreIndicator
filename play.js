@@ -628,7 +628,7 @@ function main() {
      * botton handler
      */
     $("#resetButton").on("click", (e) => {
-        context.playing = false;
+        // context.playing = false;
         // duration は初期化しない
         context.hitTime = startTime;
         setCurrentTime(startTime);
@@ -691,10 +691,18 @@ function main() {
         showProgressBar();
         showRehearsalProgressBar();
         // 待たずに play しても無駄
-	context.playing = true;
-        setTimeout(() => {
-	    videoCluster.playVideo();
-        }, 500);
+	// context.playing = true;
+	const _play = () => {
+	    console.log("proBar __play");
+	    if (context.playing) {
+		const t = masterVideo.getCurrentTime();
+		sendMessage('playstarted', {currentTime: t});
+	    } else {
+		videoCluster.playVideo();
+		setTimeout(_play, 500);
+	    }
+	}
+	_play();
     });
     $("#rehearsalProgressBarContainer").on("pointerdown", (e) => {
         e.preventDefault();
@@ -707,9 +715,16 @@ function main() {
         showProgressBar();
         showRehearsalProgressBar();
         // 待たずに play しても無駄
-        setTimeout(() => {
-	    videoCluster.playVideo();
-        }, 200);
+	const _play = () => {
+	    console.log("rehaProBar _play");
+	    if (context.playing) {
+		sendMessage('playstarted', {});
+	    } else {
+		videoCluster.playVideo();
+		setTimeout(_play, 500);
+	    }
+	}
+	_play();
     });
     $("#volumeRange").on("input", e => {
 	masterVideo.setVolume($("#volumeRange").value);
@@ -770,17 +785,31 @@ window.addEventListener("message", (message) => {
 		context.hitTime = startTime;
 		showProgressBar();
 		showRehearsalProgressBar();
-		// 待たずに play しても無駄
-		context.playing = true;
-		setTimeout(() => {
-		    videoCluster.playVideo();
-		    sendMessage('playstarted', {});
-		}, 500);
+		let retry_delay = 100
+		const __play = function() {
+		    console.log("messsage play __play");
+		    if (context.playing) {
+			// 再生はじまったら親に知らせる
+			const t = masterVideo.getCurrentTime();
+			sendMessage('playstarted', {currentTime: t});
+		    } else {
+			videoCluster.playVideo();
+			// iframe 越しに play 実行すると delay かけないと
+			// 動かないので、動くまで playVideo を呼ぶ
+			retry_delay += 100
+			if (retry_delay < 1000) {
+			    setTimeout(__play, 100);
+			} else {
+			    console.error("__play retry_delay over", {retry_delay});
+			}
+		    }
+		}
+		__play();
 	    } else {
-		setTimeout(_play, 1);
+		setTimeout(_play, 100);
 	    }
 	}
-	setTimeout(_play, 1);
+	_play();
     } else if (method == "pause") {
 	videoCluster.pauseVideo();
     } else if (method == "volume") {
