@@ -88,7 +88,7 @@ const _$ = e => {
 	    e.getCurrentTime = () => { return player.getCurrentTime(); }
 	    e.getDuration = () => { return player.getDuration(); }
 	    e.setVolume = (v) => { return player.setVolume(v); }
-	    e.getVolume = () => { return player.getVolume(); }
+	    e.getVolume = () => (player.getVolume)? player.getVolume(): 100;
 	} else {
 	    // 通常の video 要素
 	    e.src = s
