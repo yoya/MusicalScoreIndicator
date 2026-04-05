@@ -10,12 +10,12 @@ let iframesLoadedCount = 0;
 function init() {
     iframes = document.querySelectorAll("iframe");
     window.addEventListener("message", (message) => {
-	// console.log("list", message.data);
+	console.debug("list listen:", message.data);
 	const map = message.data;
 	const method = map.get("method");
-	if (method == "canplaythrough") {
+	if ((method == "loaded")  || method == "canplaythrough") {
 	    iframesLoadedCount++;
-	    if (iframesLoadedCount == iframes.length) {
+	    if (iframesLoadedCount == iframes.length * 2) {
 		iframeLoadedAll();
 	    }
 	} else if (method == "volume") {
