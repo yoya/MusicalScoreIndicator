@@ -17,7 +17,7 @@ let iframe_index = null;
  */
 
 const context = {
-    playing: false,  // ユーザ操作でのみ on/off する
+    playing: false,  // onplay や onpause の event に応じて on/off する
     currentTime: 0.0,
     headTime: 0.0,  // タイムスケジュール表示部の先頭
     tailTime: 0.0,  // タイムスケジュール表示部の末尾
@@ -55,7 +55,6 @@ if ('timeScheduleOffset' in config) {
     context.headTime -= offset;
     context.tailTime -= offset;
 }
-
 
 let boot = 0;
 document.addEventListener("DOMContentLoaded", (e) => {
@@ -143,6 +142,7 @@ function makeVideoCluster(videoMaster, videoSlaves) {
     }
 }
 
+// 練習番号の隙間を埋める
 function timeScheduleInterpolate(schedule, refSched) {
     for (const idx in schedule) {
         const reha = schedule[idx].rehearsal
@@ -175,11 +175,13 @@ function timeScheduleInterpolate(schedule, refSched) {
     }
 }
 
+// 進捗バーで指定された場所の時間
 function positionToTime(x, width) {
     const { headTime, tailTime } = context;
     return (tailTime - headTime) * (x / width) + headTime;
 }
 
+// 時間に対応する進捗バーの場所
 function timeToPosition(t, width) {
     const { headTime, tailTime } = context;
     return ((t - headTime) / (tailTime - headTime)) * width;
@@ -371,6 +373,7 @@ function hitProgressBar(x, y, width, height) {
     }
     return ret;
 }
+
 function hitRehearsalProgressBar(x, y, width, height) {
     const t = masterVideo.getCurrentTime();
     const curr = getRehearsalTime(t, 0);
@@ -379,7 +382,6 @@ function hitRehearsalProgressBar(x, y, width, height) {
     const ret = curr + (next - curr) * r;
     return ret;
 }
-
 
 let baseImageData = null;
 function makeProgressBase() {
