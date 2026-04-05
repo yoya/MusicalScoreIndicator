@@ -602,6 +602,7 @@ function main() {
             context.hitTime = startTime;
             startTimeDone = true;
         }
+	sendMessage('canplaythrough', {});
     });
     masterVideo.on("durationchange", durationVideo);
     masterVideo.on("playing", onPlaying);

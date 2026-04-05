@@ -13,7 +13,7 @@ function init() {
 	// console.log("list", message.data);
 	const map = message.data;
 	const method = map.get("method");
-	if (method == "loaded") {
+	if (method == "canplaythrough") {
 	    iframesLoadedCount++;
 	    if (iframesLoadedCount == iframes.length) {
 		iframeLoadedAll();
