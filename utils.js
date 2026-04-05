@@ -74,7 +74,7 @@ const _$ = e => {
                     },
 		},
 		playerVars: {
-		    autoplay: 0,
+		    autoplay: 1,
 		    controls: 0,
 		    loop: 0,
 		    modestbranding: 0,
