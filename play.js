@@ -761,6 +761,9 @@ function sendMessage(method, params) {
 window.addEventListener("message", (message) => {
     console.debug("play listen:", iframe_index, message.data);
     const map = message.data;
+    if (! (map instanceof  Map)) {
+	return ;  // 多分、YouTube のメッセージなので skip する
+    }
     const method = map.get("method");
     if (method == "index") {
 	iframe_index = map.get('index');
