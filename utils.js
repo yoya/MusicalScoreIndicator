@@ -100,6 +100,7 @@ const _$ = e => {
 	    if (! e.pauseVideo) { e.pauseVideo = e.pause }
 	    if (! e.setVolume) { e.setVolume = (v) => { e.volume = v/100; } }
 	    if (! e.getVolume) { e.getVolume = () => e.volume * 100 }
+	    e.load();  // iPhone は明示的に load しないと読み込み開始しない
 	}
     }
     // jQuery 風の eventListener
