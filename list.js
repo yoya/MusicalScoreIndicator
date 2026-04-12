@@ -15,6 +15,7 @@ function init() {
 	const method = map.get("method");
 	if ((method == "loaded")  || method == "canplaythrough") {
 	    iframesLoadedCount++;
+	    // console.log(iframesLoadedCount+"/"+(iframes.length * 2))
 	    if (iframesLoadedCount == iframes.length * 2) {
 		iframeLoadedAll();
 	    }
