@@ -1,10 +1,16 @@
 "use strict";
 
 /*
- * 再生中の音声を Web Audio でリアルタイムに解析し、spectrum 動画 (showcqt) と
- * 同じ絵を canvas に描く。spectrum 動画を読み込まずに済むので通信量が減る。
- * 解析窓の分だけ表示が遅れるので、既定で窓長を showcqt の半分にして遅れを減らしている
- * (fastcqt。低音 0.12 秒、中音 0.08 秒、高音 0.06 秒程度。cqtfast=0 で showcqt と同じ窓長)。
+ * spectrum 動画 (showcqt) と同じ絵を canvas に描く。描き方は 2 通り:
+ *
+ *   事前計算データ (loadData / setupData): movie/cqtdata.sh で曲設定ごとに作った WebP
+ *     (毎秒 24 行の値) を再生位置で引いて描く。計算上の遅れが無く、0.1 秒先を表示する
+ *     (cqtlead)。通信量は spectrum 動画の 1/10 程度。YouTube の曲にも使える。
+ *   リアルタイム解析 (setup): データが無い時に、再生中の音声を Web Audio で解析して
+ *     描く。窓長を showcqt の半分にして (fastcqt) 遅れを減らしている
+ *     (低音 0.12 秒、中音 0.08 秒、高音 0.06 秒程度。cqtfast=0 で showcqt と同じ窓長)。
+ *
+ * 以下はリアルタイム解析の説明 (事前計算データの説明は後半)。
  *
  * spectrum 動画は movie/movie.sh の
  *   showcqt=size=600x180:timeclamp=0.5:rate=24:gamma=5:gamma2=5:fontcolor=r(1)+g(1)+b(1),
@@ -30,6 +36,7 @@
  *                                └→ (DelayNode) → destination
  *
  * 調整用の URL パラメータ:
+ *   cqtlead=<秒>     (事前計算データ) 再生位置よりこの秒数だけ先を表示 (既定 0.1)
  *   cqtgain=<倍率>   明るさ (既定 1)
  *   cqtfast=0        窓長を showcqt と同じにする (既定は半分: 遅れが減る代わりに低音が少しぼやける)
  *   cqtdelay=<秒>    音声だけを遅らせる (解析窓の遅れを打ち消す実験用。楽譜表示は補正しない)
@@ -431,5 +438,231 @@ const liveCQT = (() => {
 	}
     }
 
-    return { setup, start };
+    // ---- 事前計算データ (movie/cqtdata.sh が作る WebP) で表示する ----
+    //
+    // WebP の 1 行 = 左 448 列 + 右 448 列の値で、showcqt の色の r (左) / b (右) と同じ
+    //   255 × min(1, volume² × パワー)^(1/gamma)
+    // 緑は左右の平均 255 × min(1, (vL + vR) / 2)^(1/gamma) で、表引き (mixLUT) で作る。
+    // バーの高さは (volume2² × 左右の平均)^(1/gamma2) で、movie.sh の設定
+    // (volume2 = volume, gamma2 = gamma) では緑 / 255 と同じになる。
+    // 値の時刻は解析窓の中心 (動画と同じ) なので計算上の遅れは無いが、
+    // leadTime (cqtlead、既定 0.1 秒) だけ先のデータを表示する。
+    // 毎秒 24 行のデータを時刻で補間して、バー・軸と毎秒 144 行のソノグラムを描く。
+    // 開始時刻・行数などは 1 枚目の WebP の XMP 領域に JSON で入っている。
+    let data = null;               // XMP の中身 + url
+    let dataFirst = null;          // 1 枚目の WebP (Blob。メタデータを読む時に取ったもの)
+    const chunkCache = new Map();  // 画像番号 → { l, r } | "loading" | "error"
+    const PREFETCH_SEC = 20;       // 画像の終わりがこの秒数より近づいたら次を読む
+    let leadTime = 0.1;
+    let mixLUT = null;             // mixLUT[l * 256 + r] = 緑 (0〜255)
+    let dataDirty = true;          // 読み込みが済んだ等で描き直しが要る
+    let lastDrawT = null;
+    let clockBase = 0, clockNow = 0, lastCt = -1;
+    let drawMs = 0, drawCount = 0, drawSince = -Infinity, infoLoading = false;  // 最初の描画で表示
+
+    function buildMixLUT() {
+	const lut = new Uint8Array(256 * 256);
+	for (let l = 0; l < 256; l++) {
+	    const vl = Math.pow(l / 255, SONO_G);
+	    for (let r = 0; r < 256; r++) {
+		const v = 0.5 * (vl + Math.pow(r / 255, SONO_G));
+		lut[l * 256 + r] = Math.round(255 * Math.pow(v, 1 / SONO_G));
+	    }
+	}
+	return lut;
+    }
+
+    // WebP (RIFF) の "XMP " チャンクの JSON を読む
+    function readXMP(buf) {
+	const dv = new DataView(buf);
+	const tag = (o) => String.fromCharCode(dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3));
+	if (buf.byteLength < 12 || tag(0) !== "RIFF" || tag(8) !== "WEBP") {
+	    throw new Error("WebP ではありません");
+	}
+	for (let o = 12; o + 8 <= buf.byteLength; ) {
+	    const t = tag(o), n = dv.getUint32(o + 4, true);
+	    if (t === "XMP ") {
+		return JSON.parse(new TextDecoder().decode(new Uint8Array(buf, o + 8, n)));
+	    }
+	    o += 8 + n + (n & 1);
+	}
+	throw new Error("XMP (メタデータ) がありません");
+    }
+
+    // データ (1 枚目の WebP) を読んでメタデータを返す。無ければ reject。
+    // play.js が設定を読んだ直後に呼ぶ (表示方法を決めるため)。
+    function loadData(url) {
+	const u = new URL(url, window.location.href).href;
+	return fetch(u).then(res => {
+	    if (! res.ok) { throw new Error("HTTP " + res.status); }
+	    return res.arrayBuffer();
+	}).then(buf => {
+	    const meta = readXMP(buf);
+	    if (meta.format !== "cqtdata-2" || meta.width !== CROP_W) {
+		throw new Error("形式が違います: " + meta.format + " width=" + meta.width);
+	    }
+	    data = meta;
+	    data.url = u;
+	    dataFirst = new Blob([buf], { type: "image/webp" });
+	    log("data " + url + " start=" + data.start + " rows=" + data.rows + " files=" + data.files);
+	    return meta;
+	});
+    }
+
+    function chunkUrl(i) {
+	return (i === 0) ? data.url : data.url.replace(/\.webp$/, "-" + (i + 1) + ".webp");
+    }
+
+    // 画像を左右の値の配列にする。メモリを抑えるため 1440 行ずつ切り出す。
+    function decodeChunk(i, blob) {
+	const objUrl = URL.createObjectURL(blob);
+	const img = new Image();
+	img.src = objUrl;
+	return img.decode().then(() => {
+	    URL.revokeObjectURL(objUrl);
+	    const w = data.width, h = img.height, slice = 1440;
+	    const c = document.createElement("canvas");
+	    c.width = w * 2;
+	    c.height = Math.min(slice, h);
+	    const g = c.getContext("2d", { willReadFrequently: true });
+	    const l = new Uint8Array(w * h), r = new Uint8Array(w * h);
+	    for (let y0 = 0; y0 < h; y0 += slice) {
+		const sh = Math.min(slice, h - y0);
+		g.clearRect(0, 0, w * 2, sh);
+		g.drawImage(img, 0, y0, w * 2, sh, 0, 0, w * 2, sh);
+		const px = g.getImageData(0, 0, w * 2, sh).data;
+		for (let y = 0; y < sh; y++) {
+		    const p0 = y * w * 2 * 4, o = (y0 + y) * w;
+		    for (let x = 0; x < w; x++) {
+			l[o + x] = px[p0 + x * 4];
+			r[o + x] = px[p0 + (w + x) * 4];
+		    }
+		}
+	    }
+	    return { l, r };
+	});
+    }
+
+    function loadChunk(i) {
+	if (i < 0 || i >= data.files || chunkCache.has(i)) { return; }
+	chunkCache.set(i, "loading");
+	const blobPromise = (i === 0 && dataFirst) ? Promise.resolve(dataFirst) :
+	      fetch(chunkUrl(i)).then(res => {
+		  if (! res.ok) { throw new Error("HTTP " + res.status); }
+		  return res.blob();
+	      });
+	blobPromise.then(blob => decodeChunk(i, blob)).then(chunk => {
+	    chunkCache.set(i, chunk);
+	    if (i === 0) { dataFirst = null; }
+	    dataDirty = true;
+	    log("chunk " + i + " loaded");
+	}).catch(err => {
+	    chunkCache.set(i, "error");
+	    console.error("liveCQT: chunk load failed", chunkUrl(i), err);
+	    log("chunk " + i + " failed");
+	});
+    }
+
+    // 今の画像と前後だけ残す (1 枚 11 分で約 15MB になるため)
+    function evictChunks(cur) {
+	for (const k of [...chunkCache.keys()]) {
+	    if (chunkCache.get(k) !== "loading" && (k < cur - 1 || k > cur + 1)) {
+		chunkCache.delete(k);
+	    }
+	}
+    }
+
+    // 行番号 → [画像, その行の先頭位置]。まだ無ければ読み込みを始めて null
+    function rowRef(row) {
+	if (row < 0 || row >= data.rows) { return null; }
+	const ci = Math.floor(row / data.chunkRows);
+	const c = chunkCache.get(ci);
+	if (! c || typeof c === "string") { loadChunk(ci); return null; }
+	return [c, (row - ci * data.chunkRows) * data.width];
+    }
+
+    // 時刻 t の 1 行 (r, g, b) を dst[off..] に書く。height があればバーの高さも。
+    // データが無い所は黒。範囲外以外でデータが無ければ false (読み込み中)。
+    function sampleRow(t, dst, off, height) {
+	const rowF = (t - data.start) * data.rate;
+	const i0 = Math.floor(rowF), f = rowF - i0;
+	const a = rowRef(i0), b = rowRef(i0 + 1) || a;
+	if (! a) {
+	    dst.fill(0, off, off + CROP_W * 3);
+	    if (height) { height.fill(0); }
+	    return (i0 < 0 || i0 >= data.rows);
+	}
+	const [ca, oa] = a, [cb, ob] = b;
+	const f0 = 1 - f;
+	for (let x = 0; x < CROP_W; x++) {
+	    const la = ca.l[oa + x], ra = ca.r[oa + x], lb = cb.l[ob + x], rb = cb.r[ob + x];
+	    const g = mixLUT[la * 256 + ra] * f0 + mixLUT[lb * 256 + rb] * f;
+	    const o = off + x * 3;
+	    dst[o] = la * f0 + lb * f;
+	    dst[o + 1] = g;
+	    dst[o + 2] = ra * f0 + rb * f;
+	    if (height) { height[x] = g / 255; }
+	}
+	return true;
+    }
+
+    // 再生位置。currentTime の更新が粗いブラウザ (YouTube を含む) でも滑らかに
+    // 流れるよう、値が変わらない間は前回からの経過時間で進める (0.5 秒まで)。
+    function mediaTime(now) {
+	let ct;
+	try { ct = media.getCurrentTime(); } catch (e) { ct = 0; }
+	if (! Number.isFinite(ct)) { ct = 0; }
+	let paused = true;
+	try { paused = media.isPaused(); } catch (e) { }
+	if (ct !== lastCt || paused) {
+	    lastCt = ct;
+	    clockBase = ct;
+	    clockNow = now;
+	    return ct;
+	}
+	return clockBase + Math.min(0.5, (now - clockNow) / 1000);
+    }
+
+    const dataColor = new Float32Array(CROP_W * 3), dataHeight = new Float32Array(CROP_W);
+    function dataLoop(now) {
+	requestAnimationFrame(dataLoop);
+	const t = mediaTime(now) + leadTime;
+	if (t === lastDrawT && ! dataDirty) { return; }  // 停止中は描き直さない
+	dataDirty = false;
+	lastDrawT = t;
+	const t0 = performance.now();
+	// 読み込み: 今の画像と、終わりが近ければ次の画像
+	const row = Math.max(0, Math.floor((t - data.start) * data.rate));
+	const cur = Math.min(data.files - 1, Math.floor(row / data.chunkRows));
+	loadChunk(cur);
+	if ((cur + 1) * data.chunkRows - row < PREFETCH_SEC * data.rate) { loadChunk(cur + 1); }
+	evictChunks(cur);
+	let ok = sampleRow(t, dataColor, 0, dataHeight);
+	for (let y = 0; y < SONO_ROWS; y++) {
+	    ok = sampleRow(t - y / ROWS_PER_SEC, sonoBuf, y * CROP_W * 3, null) && ok;
+	}
+	sonoIdx = 0;  // sonoBuf の 0 行目が最新
+	render(dataColor, dataHeight);
+	drawMs += performance.now() - t0;
+	drawCount++;
+	// 1 秒ごと。読み込み中の表示は、読み込めたらすぐ消す (停止中は次の描画が無いので)
+	if (now - drawSince > 1000 || ! ok || infoLoading) {
+	    infoLoading = ! ok;
+	    setInfo((ok ? "" : "CQT データ読み込み中… ") +
+		    "描画 " + (drawCount ? drawMs / drawCount : 0).toFixed(2) + "ms" +
+		    " | " + (leadTime >= 0 ? "先行 " : "遅延 ") + Math.abs(leadTime).toFixed(2) + "秒");
+	    drawSince = now; drawMs = 0; drawCount = 0;
+	}
+    }
+
+    // loadData が済んだ後に呼ぶ
+    function setupData(mediaElement, canvasElement, infoElement) {
+	initCanvas(mediaElement, canvasElement, infoElement);
+	leadTime = num("cqtlead", 0.1);
+	mixLUT = buildMixLUT();
+	loadChunk(0);
+	requestAnimationFrame(dataLoop);
+    }
+
+    return { setup, start, loadData, setupData };
 })();

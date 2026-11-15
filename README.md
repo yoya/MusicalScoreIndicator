@@ -41,11 +41,31 @@ mp4 のメタデータ (moov) がファイル末尾にあると、ブラウザ�
 
 ## CQT 表示
 
-play.html は再生中の音声をリアルタイムに解析して、spectrum 動画と同じ絵 (showcqt) を描く
-(cqt.js)。spectrum 動画は読み込まないので通信量が減る。解析の都合で 0.06〜0.12 秒ほど遅れる。
-YouTube や別オリジンの動画は音声を取り出せないので、spectrum 動画を使う。
-URL パラメータ: `cqt=video` (spectrum 動画を使う)、`cqt=2` (両方を並べる)、
-`cqtfast=0` (解析の窓長を showcqt と同じにする。低音がくっきりする代わりに遅れが倍近くなる)。
+play.html は spectrum 動画 (showcqt) と同じ絵を canvas に描く (cqt.js)。上から順に使えるものを使う。
+
+1. 事前計算データ (WebP): 曲設定ごとに movie/cqtdata.sh で作る。遅れが無く、0.1 秒先を
+   表示する。通信量は spectrum 動画の 1/10 程度。YouTube の曲にも使える
+2. リアルタイム解析: データが無い時に、再生中の音声を解析して描く。0.06〜0.12 秒ほど遅れる
+3. spectrum 動画: データが無い YouTube や別オリジンの動画の時
+
+```
+% bash movie/cqtdata.sh movie/debussy/images-Iberia-2-boulez.json
+=> movie/debussy/images-Iberia-2-boulez-cqt.webp
+% bash movie/cqtdata.sh gounod/faust-juwelenarie-score.json
+=> movie/gounod/faust-juwelenarie-score-cqt.webp
+```
+
+- WebP は movie/ 以下の、設定と同じディレクトリに「設定の名前-cqt.webp」で置く
+  (debussy/foo.json と movie/debussy/foo.json は同じ movie/debussy/foo-cqt.webp を使う)。
+  play.html はこの名前で探すので、設定 JSON の書き換えは要らない
+- 設定の再生範囲 (timeScope) の分だけ作る。11 分を超えると foo-cqt-2.webp … に分かれる
+- 音声は設定の bigvideo / file から探す (noaudio や YouTube の時は同じ名前の音声付きの
+  ファイルを探す)。見つからなければ 2 番目の引数で音声ファイルを指定する
+- 設定の再生範囲を変えたら作り直す
+
+URL パラメータ: `cqt=video` (spectrum 動画)、`cqt=live` (リアルタイム解析)、
+`cqt=3` (データと spectrum 動画を並べる)、`cqt=2` (リアルタイム解析と spectrum 動画を並べる)、
+`cqtlead=0.1` (データを何秒先に表示するか)、`cqtfast=0` (リアルタイム解析の窓長を showcqt と同じにする)。
 
 # usage
 

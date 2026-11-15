@@ -71,32 +71,45 @@ if ('timeScheduleOffset' in config) {
     context.tailTime -= offset;
 }
 
-// CQT (spectrum) の表示方法。
-//   既定: 再生中の音声をリアルタイムに解析して canvas に描く (cqt.js)。
-//         spectrum 動画は読み込まない。解析窓の分だけ少し遅れる (0.06〜0.12 秒程度)
-//   spectrum 動画: YouTube や別オリジンの動画 (音声を取り出せない) の時、
-//         または URL に cqt=video がある時。
-//   cqt=2: リアルタイム解析と spectrum 動画を並べる (比較用)
+// CQT (spectrum) の表示方法。上から順に使えるものを使う:
+//   1. 事前計算データ (movie/cqtdata.sh が曲設定ごとに作る WebP)。
+//      場所は movie/<設定と同じディレクトリ>/<設定の名前>-cqt.webp
+//      (c=debussy/foo.json でも c=movie/debussy/foo.json でも movie/debussy/foo-cqt.webp)。
+//      遅れが無く 0.1 秒先を表示する。YouTube の曲にも使える
+//   2. リアルタイム解析 (fastcqt)。データが無く、音声を取り出せる動画の時。
+//      解析窓の分だけ少し遅れる (0.06〜0.12 秒程度)
+//   3. spectrum 動画。データが無い YouTube や別オリジンの動画の時
+// spectrum 動画は 3 になるまで読み込まない。URL の cqt= で選べる (比較用):
+//   cqt=video: spectrum 動画, cqt=live: リアルタイム解析, cqt=data: データ,
+//   cqt=2: リアルタイム解析と spectrum 動画を並べる, cqt=3: データと spectrum 動画を並べる
+const cqtDataUrl = "movie/" + url.replace(/^(\.\/)?(movie\/)?/, "").replace(/\.json$/, "-cqt.webp");
 const spectrumMode = (() => {
     const m = getURLParams("cqt");
-    if (m === "video" || typeof liveCQT === "undefined") {
-	return { video: true, canvas: null };
-    }
+    const hasCQT = (typeof liveCQT !== "undefined");
     const src = config.bigvideo || config.file;
-    if (/^https:\/\/www\.youtube\.com\//.test(src) ||
-	new URL(src, window.location.href).origin !== window.location.origin) {
-	console.warn("cqt: この動画の音声は解析できないので spectrum 動画を使います", src);
-	return { video: true, canvas: null };
+    const canLive = hasCQT && ! /^https:\/\/www\.youtube\.com\//.test(src) &&
+	  new URL(src, window.location.href).origin === window.location.origin;
+    if (m === "video" || ! hasCQT) {
+	return { video: true, data: false, live: false };
     }
-    return { video: (m === "2"), canvas: "live" };
+    if (m === "live" || m === "1" || m === "2") {
+	return { video: (m === "2") || ! canLive, data: false, live: canLive };
+    }
+    // 既定 / data / 3: データを試し、無ければ live、それも無理なら spectrum 動画
+    return { video: (m === "3"), data: true, live: canLive && m !== "data" && m !== "3" };
 })();
+// データの有無は読んでみないと分からないので、設定を読んだらすぐ取りに行く
+const cqtDataPromise = spectrumMode.data ? liveCQT.loadData(cqtDataUrl) : null;
+if (cqtDataPromise) {
+    cqtDataPromise.catch(err => { console.info("cqt: 事前計算データ無し", cqtDataUrl, err.message); });
+}
 
 let boot = 0;
 document.addEventListener("DOMContentLoaded", (e) => {
     if (spectrumMode.video) {
 	$("#spectrum").setSource(config.spectrum);
     } else {
-	$("#spectrum").style.display = "none";  // 読み込みもしない
+	$("#spectrum").style.display = "none";  // 読み込みもしない (必要になったら useSpectrumVideo)
     }
     init();
     sendMessage('loaded', {});
@@ -133,9 +146,26 @@ function init() {
     if (spectrumMode.video) {
 	dattach($("#spectrum"), "spectrum", slaveEvents);
     }
-    if (spectrumMode.canvas) {
+    const setupLive = () => {
 	$("#liveSpectrumContainer").style.display = "block";
 	liveCQT.setup(masterVideo, $("#liveSpectrum"), $("#liveSpectrumInfo"));
+    };
+    if (cqtDataPromise) {
+	$("#liveSpectrumContainer").style.display = "block";
+	cqtDataPromise.then(() => {
+	    liveCQT.setupData(masterVideo, $("#liveSpectrum"), $("#liveSpectrumInfo"));
+	}).catch(() => {
+	    if (spectrumMode.live) {
+		setupLive();
+	    } else if (! spectrumMode.video) {
+		$("#liveSpectrumContainer").style.display = "none";
+		useSpectrumVideo();
+	    } else {
+		$("#liveSpectrumContainer").style.display = "none";
+	    }
+	});
+    } else if (spectrumMode.live) {
+	setupLive();
     }
     const refUrl = config.reference;
     if (refUrl) {
@@ -149,6 +179,19 @@ function init() {
     }
     main();
 };
+
+// 事前計算データもリアルタイム解析も使えない時に、spectrum 動画を後から読み込んで同期再生する
+function useSpectrumVideo() {
+    const v = $("#spectrum");
+    v.style.display = "";
+    v.setSource(config.spectrum);
+    dattach(v, "spectrum", ["pause", "waiting", "stalled", "ended", "error", "emptied", "playrejected"]);
+    videoCluster.addSlave(v);
+    try { v.seekTo(masterVideo.getCurrentTime()); } catch (e) { }  // YouTube の準備前は 0 から
+    if (context.playing) {  // もう再生中なら合わせて再生 (まだなら Play で一緒に始まる)
+	v.playVideo();
+    }
+}
 
 function loadFile(url) {  // sync function
     var xhr = new XMLHttpRequest();
@@ -185,6 +228,11 @@ function makeVideoCluster(videoMaster, videoSlaves) {
     }
     this.seekTo = (t) => {
 	videoAll.forEach(v => { v.seekTo(t); });
+    }
+    // 後から同期再生に加える (事前計算データが無かった時の spectrum 動画)
+    this.addSlave = (v) => {
+	videoSlaves.push(v);
+	videoAll.push(v);
     }
     this.syncByMaster = () => {
 	const currentTime = videoMaster.getCurrentTime();
