@@ -197,11 +197,14 @@ function seekVideo(t) {
 // (iframe 越しなどで一度の playVideo では再生されない事がある)
 // 新しく呼ばれたら前のリトライは止める。上限回数で諦める。
 let playRetryTimerId = null;
-function playWithRetry(maxRetry = 10, interval = 200) {
+function cancelPlayRetry() {
     if (playRetryTimerId) {
 	clearTimeout(playRetryTimerId);
 	playRetryTimerId = null;
     }
+}
+function playWithRetry(maxRetry = 10, interval = 200) {
+    cancelPlayRetry();
     let count = 0;
     const _play = () => {
 	playRetryTimerId = null;
@@ -258,6 +261,7 @@ function onPlaying(e) {  // 動画 play 状態になった時に呼ぶ
 
 function onPause(e) {  // 動画 pause 状態になった時に呼ぶ
     // console.debug("onPause", {e});
+    cancelPlayRetry();  // pause 後に再生リトライが走って勝手に再開しないように
     $("#playButton").innerText = "Play";
     $("#playButton").style.backgroundColor = "";
     currentVideo();
@@ -674,6 +678,7 @@ function main() {
         showRehearsalProgressBar();
     });
     $("#playButton").on("click", (e) => {
+        cancelPlayRetry();  // ボタン操作を優先する
         if (context.playing) {
 	    videoCluster.pauseVideo();
         } else {
