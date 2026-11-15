@@ -127,7 +127,7 @@ files=$(( (rows + maxrows - 1) / maxrows ))
 chunk=$(( (rows + files - 1) / files ))   # 1 枚の行数 (枚数で均等に割る)
 
 # 左 (r) と右 (b) の値を横に並べ、chunk 行ずつ 1 枚の画像にする (最後の 1 枚の余りは黒)
-ffmpeg -v error -y -ss "$start" -t "$length" -i "$src" -filter_complex \
+ffmpeg -nostdin -v error -y -ss "$start" -t "$length" -i "$src" -filter_complex \
        "[0:a:0]$showcqt,format=rgb24,crop=448:1:100:0,format=gbrp,extractplanes=r+b[l][r];[l][r]hstack,tile=1x$chunk" \
        -start_number 1 "$tmp/%d.png"
 
