@@ -1,15 +1,10 @@
 "use strict";
 
 /*
- * showcqt (spectrum 動画) と同じ絵を canvas に描く。描き方は 2 通り:
- *
- *   事前計算データ (setupData): movie/cqtdata.sh で作った値 (毎秒 24 行) を時刻で
- *     引いて描く。遅れが無く、通信量は spectrum 動画の 1/15 程度、端末の負荷も軽い。
- *     設定 JSON に "spectrumData" があれば play.js はこちらを使う。
- *   リアルタイム解析 (setup): 再生中の音声を Web Audio で解析して描く (試作)。
- *     データの用意は要らないが、解析窓の分だけ遅れる。URL の cqt=1 / cqt=2 で使う。
- *
- * どちらも絵の作りは movie/movie.sh の spectrum 動画と同じ。以下はリアルタイム解析の説明。
+ * 再生中の音声を Web Audio でリアルタイムに解析し、spectrum 動画 (showcqt) と
+ * 同じ絵を canvas に描く。spectrum 動画を読み込まずに済むので通信量が減る。
+ * 解析窓の分だけ表示が遅れるので、既定で窓長を showcqt の半分にして遅れを減らしている
+ * (fastcqt。低音 0.12 秒、中音 0.08 秒、高音 0.06 秒程度。cqtfast=0 で showcqt と同じ窓長)。
  *
  * spectrum 動画は movie/movie.sh の
  *   showcqt=size=600x180:timeclamp=0.5:rate=24:gamma=5:gamma2=5:fontcolor=r(1)+g(1)+b(1),
@@ -35,9 +30,8 @@
  *                                └→ (DelayNode) → destination
  *
  * 調整用の URL パラメータ:
- *   cqtlead=<秒>     (事前計算データ) 再生位置よりこの秒数だけ先のデータを表示 (既定 0.1)
  *   cqtgain=<倍率>   明るさ (既定 1)
- *   cqtfast=1        窓長を半分にする (遅れが減る代わりに低音がぼやける)
+ *   cqtfast=0        窓長を showcqt と同じにする (既定は半分: 遅れが減る代わりに低音が少しぼやける)
  *   cqtdelay=<秒>    音声だけを遅らせる (解析窓の遅れを打ち消す実験用。楽譜表示は補正しない)
  *   cqtlat=auto|<秒> 出力レイテンシ分だけ表示を遅らせる (既定 auto: AudioContext の値を使う)
  *   cqtfps=<fps>     解析・描画の上限 fps (既定 30。間の行は補間する)
@@ -84,7 +78,7 @@ const liveCQT = (() => {
 
     let media = null, canvas = null, ctx2d = null, info = null;
     let actx = null, analysers = null, kernel = null, dbBufs = null, pwBufs = null;
-    let started = false;
+    let connected = false;  // video の音声を解析につないだか
     let gain = 1, audioDelay = 0, latMode = "auto", minInterval = 0, tlScale = 1;
     let frameQueue = [];  // 出力レイテンシ分だけ表示を遅らせるための待ち行列
     let lastCompute = 0, lastRowTime = null, rowAcc = 0;
@@ -116,7 +110,7 @@ const liveCQT = (() => {
 		if (f >= sampleRate / 2) { continue; }
 		const tl = tlength(f);
 		const flen = 8 / tl;  // Nuttall 窓の全幅 (Hz)
-		// 窓長が tlength 以下で一番長い FFT サイズを使う (cqtfast で半分)。
+		// 窓長が tlength 以下で一番長い FFT サイズを使う (fastcqt では tlength の半分以下)。
 		// 長い窓を少しでも混ぜると、gamma=5 で小さい値も明るく見えるため
 		// 音が止まった後に長い尾を引くので、混ぜずに 1 つだけ使う。
 		let p = Math.floor(Math.log2(sampleRate * tl * tlScale));
@@ -185,7 +179,7 @@ const liveCQT = (() => {
 	return a;
     }
 
-    // 描画先の準備 (リアルタイム / 事前計算データ 共通)
+    // 描画先の準備
     function initCanvas(mediaElement, canvasElement, infoElement) {
 	media = mediaElement;
 	canvas = canvasElement;
@@ -204,7 +198,7 @@ const liveCQT = (() => {
     function setup(mediaElement, canvasElement, infoElement) {
 	initCanvas(mediaElement, canvasElement, infoElement);
 	gain = num("cqtgain", 1);
-	tlScale = (getURLParams("cqtfast") === "1") ? 0.5 : 1;
+	tlScale = (getURLParams("cqtfast") === "0") ? 1 : 0.5;  // 既定は fastcqt (窓長半分)
 	audioDelay = Math.max(0, num("cqtdelay", 0));
 	const lat = getURLParams("cqtlat");
 	latMode = (lat === null || lat === "auto") ? "auto" : Math.max(0, parseFloat(lat) || 0);
@@ -212,6 +206,11 @@ const liveCQT = (() => {
 	setInfo("タップすると解析を始めます");
 	// AudioContext は操作の中で作る (iOS は操作の外では鳴らせない)
 	const onGesture = () => start();
+	// PC ブラウザは、同じオリジンの親ページで操作済みなら、操作なしの iframe
+	// (一覧ページの連続再生の次の曲) でも音付きの自動再生を許す。その場合は
+	// AudioContext も動かせるので、再生が始まった時にも開始を試みる。
+	// 許されなければ (iOS など) 何もせず、タップを待つ。
+	media.addEventListener("playing", () => tryAutoStart());
 	for (const t of ["pointerdown", "touchend", "click", "keydown"]) {
 	    document.addEventListener(t, onGesture, true);
 	}
@@ -219,16 +218,45 @@ const liveCQT = (() => {
 
     function setInfo(s) { if (info) { info.textContent = s; } }
 
-    function start() {
-	if (started) {
-	    if (actx && actx.state === "suspended") { actx.resume(); }
-	    return ;
-	}
-	started = true;
+    // AudioContext を作る (まだ動いていなくてもよい)
+    function ensureContext() {
+	if (actx) { return true; }
 	try {
 	    // iOS 17+: Web Audio の音がマナースイッチで消えないようにする
 	    if (navigator.audioSession) { navigator.audioSession.type = "playback"; }
 	    actx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "interactive" });
+	    log("context state=" + actx.state);
+	    return true;
+	} catch (err) {
+	    console.error("liveCQT: AudioContext failed", err);
+	    setInfo("開始できません: " + err.message);
+	    return false;
+	}
+    }
+
+    // 操作 (タップ等) の中: 開始が許されるので、すぐ解析につなぐ
+    function start() {
+	if (! ensureContext()) { return; }
+	if (actx.state === "suspended") { actx.resume(); }
+	if (! connected) { connect(); }
+    }
+
+    // 操作の外 (再生開始時): 開始を試み、本当に動いた時だけ解析につなぐ。
+    // 動いていない AudioContext に video の音声をつなぐと無音になるため。
+    function tryAutoStart() {
+	if (connected || ! ensureContext()) { return; }
+	if (actx.state === "running") { connect(); return; }
+	actx.resume().then(() => {
+	    if (actx.state === "running" && ! connected) {
+		log("auto start (no tap)");
+		connect();
+	    }
+	}).catch(() => { });
+    }
+
+    function connect() {
+	connected = true;
+	try {
 	    const src = actx.createMediaElementSource(media);
 	    // 先に音の出口をつなぐ (以降で失敗しても無音にならないように)
 	    let out = src;
@@ -260,8 +288,7 @@ const liveCQT = (() => {
 	    }));
 	    dbBufs = FFT_SIZES.map(size => new Float32Array(size / 2));
 	    pwBufs = FFT_SIZES.map(size => new Float32Array(size / 2));
-	    if (actx.state === "suspended") { actx.resume(); }
-	    log("start sr=" + actx.sampleRate + " state=" + actx.state);
+	    log("connect sr=" + actx.sampleRate + " state=" + actx.state);
 	    requestAnimationFrame(loop);
 	} catch (err) {
 	    console.error("liveCQT start failed", err);
@@ -398,192 +425,11 @@ const liveCQT = (() => {
 		    " (base " + ((actx.baseLatency || 0) * 1000).toFixed(0) +
 		    " + out " + ((actx.outputLatency || 0) * 1000).toFixed(0) + ")" +
 		    (audioDelay ? " | 音声遅延 " + (audioDelay * 1000).toFixed(0) + "ms" : "") +
-		    (tlScale !== 1 ? " | fast" : "") +
+		    (tlScale === 1 ? " | 標準窓" : "") +
 		    " | " + actx.state);
 	    statSince = now; statFrames = 0; statCompute = 0;
 	}
     }
 
-    // ---- 事前計算データ (movie/cqtdata.sh が作る) で表示する ----
-    //
-    // データは 1 行 = 左 448 列 + 右 448 列の値で、showcqt の色の r (左) / b (右) と同じ
-    //   255 × min(1, volume² × パワー)^(1/gamma)
-    // 緑は左右の平均 255 × min(1, (vL + vR) / 2)^(1/gamma) で、表引き (mixLUT) で作る。
-    // バーの高さは (volume2² × 左右の平均)^(1/gamma2) で、movie.sh の設定
-    // (volume2 = volume, gamma2 = gamma) では緑 / 255 と同じになる。
-    // 値の時刻は解析窓の中心 (動画と同じ) なので遅れは無い。さらに leadTime だけ先の
-    // データを表示する (cqtlead、既定 0.1 秒)。
-    // 毎秒 24 行のデータを時刻で補間して、バー・軸と毎秒 144 行のソノグラムを描く。
-    let data = null;               // index.json の中身 + base (データの置き場所)
-    const chunkCache = new Map();  // チャンク番号 → { l, r } | "loading" | "error"
-    const CHUNK_KEEP = 4;          // メモリに残すチャンク数 (1 チャンク 60 秒 ≒ 1.3MB)
-    const PREFETCH_SEC = 20;       // チャンクの終わりがこの秒数より近づいたら次を読む
-    let leadTime = 0.1;
-    let mixLUT = null;             // mixLUT[l * 256 + r] = 緑 (0〜255)
-    let dataDirty = true;          // 読み込みが済んだ等で描き直しが要る
-    let lastDrawT = null;
-    let clockBase = 0, clockNow = 0, lastCt = -1;
-    let drawMs = 0, drawCount = 0, drawSince = 0, infoLoading = false;
-
-    function buildMixLUT() {
-	const lut = new Uint8Array(256 * 256);
-	for (let l = 0; l < 256; l++) {
-	    const vl = Math.pow(l / 255, SONO_G);
-	    for (let r = 0; r < 256; r++) {
-		const v = 0.5 * (vl + Math.pow(r / 255, SONO_G));
-		lut[l * 256 + r] = Math.round(255 * Math.pow(v, 1 / SONO_G));
-	    }
-	}
-	return lut;
-    }
-
-    // チャンク (WebP 画像) を読んで左右の値の配列にする
-    function loadChunk(i) {
-	if (i < 0 || i >= data.chunks || chunkCache.has(i)) { return; }
-	chunkCache.set(i, "loading");
-	const img = new Image();
-	img.src = data.base + data.file.replace("%03d", String(i).padStart(3, "0"));
-	img.decode().then(() => {
-	    const w = data.width, h = data.chunkRows;
-	    const c = document.createElement("canvas");
-	    c.width = w * 2;
-	    c.height = h;
-	    const g = c.getContext("2d", { willReadFrequently: true });
-	    g.drawImage(img, 0, 0);
-	    const px = g.getImageData(0, 0, w * 2, h).data;
-	    const l = new Uint8Array(w * h), r = new Uint8Array(w * h);
-	    for (let y = 0; y < h; y++) {
-		const p0 = y * w * 2 * 4, o = y * w;
-		for (let x = 0; x < w; x++) {
-		    l[o + x] = px[p0 + x * 4];
-		    r[o + x] = px[p0 + (w + x) * 4];
-		}
-	    }
-	    chunkCache.set(i, { l, r });
-	    dataDirty = true;
-	    log("chunk " + i + " loaded");
-	}).catch(err => {
-	    chunkCache.set(i, "error");
-	    console.error("liveCQT: chunk load failed", img.src, err);
-	    log("chunk " + i + " failed");
-	});
-    }
-
-    // 今のチャンクの近くだけ残す
-    function evictChunks(cur) {
-	if (chunkCache.size <= CHUNK_KEEP) { return; }
-	for (const k of [...chunkCache.keys()]) {
-	    if (chunkCache.size <= CHUNK_KEEP) { break; }
-	    const v = chunkCache.get(k);
-	    if (v !== "loading" && (k < cur - 1 || k > cur + 1)) { chunkCache.delete(k); }
-	}
-    }
-
-    // 行番号 → [チャンク, その行の先頭位置]。まだ無ければ読み込みを始めて null
-    function rowRef(row) {
-	if (row < 0 || row >= data.rows) { return null; }
-	const ci = Math.floor(row / data.chunkRows);
-	const c = chunkCache.get(ci);
-	if (! c || typeof c === "string") { loadChunk(ci); return null; }
-	return [c, (row - ci * data.chunkRows) * data.width];
-    }
-
-    // 時刻 t の 1 行 (r, g, b) を dst[off..] に書く。height があればバーの高さも。
-    // データが無い所は黒。
-    function sampleRow(t, dst, off, height) {
-	const rowF = t * data.rate;
-	const i0 = Math.floor(rowF), f = rowF - i0;
-	const a = rowRef(i0), b = rowRef(i0 + 1) || a;
-	if (! a) {
-	    dst.fill(0, off, off + CROP_W * 3);
-	    if (height) { height.fill(0); }
-	    return false;
-	}
-	const [ca, oa] = a, [cb, ob] = b;
-	const f0 = 1 - f;
-	for (let x = 0; x < CROP_W; x++) {
-	    const la = ca.l[oa + x], ra = ca.r[oa + x], lb = cb.l[ob + x], rb = cb.r[ob + x];
-	    const g = mixLUT[la * 256 + ra] * f0 + mixLUT[lb * 256 + rb] * f;
-	    const o = off + x * 3;
-	    dst[o] = la * f0 + lb * f;
-	    dst[o + 1] = g;
-	    dst[o + 2] = ra * f0 + rb * f;
-	    if (height) { height[x] = g / 255; }
-	}
-	return true;
-    }
-
-    // 再生位置。currentTime の更新が粗いブラウザでも滑らかに流れるよう、
-    // 値が変わらない間は前回からの経過時間で進める (0.5 秒まで)。
-    function mediaTime(now) {
-	let ct;
-	try { ct = media.getCurrentTime(); } catch (e) { ct = 0; }
-	if (! Number.isFinite(ct)) { ct = 0; }
-	let paused = true;
-	try { paused = media.isPaused(); } catch (e) { }
-	if (ct !== lastCt || paused) {
-	    lastCt = ct;
-	    clockBase = ct;
-	    clockNow = now;
-	    return ct;
-	}
-	return clockBase + Math.min(0.5, (now - clockNow) / 1000);
-    }
-
-    const dataColor = new Float32Array(CROP_W * 3), dataHeight = new Float32Array(CROP_W);
-    function dataLoop(now) {
-	requestAnimationFrame(dataLoop);
-	const t = mediaTime(now) + leadTime;
-	if (t === lastDrawT && ! dataDirty) { return; }  // 停止中は描き直さない
-	dataDirty = false;
-	lastDrawT = t;
-	const t0 = performance.now();
-	// 読み込み: 今のチャンクと、終わりが近ければ次のチャンク
-	const row = Math.max(0, Math.floor(t * data.rate));
-	const cur = Math.floor(row / data.chunkRows);
-	loadChunk(cur);
-	if ((cur + 1) * data.chunkRows - row < PREFETCH_SEC * data.rate) { loadChunk(cur + 1); }
-	evictChunks(cur);
-	const ok = sampleRow(t, dataColor, 0, dataHeight);
-	for (let y = 0; y < SONO_ROWS; y++) {
-	    sampleRow(t - y / ROWS_PER_SEC, sonoBuf, y * CROP_W * 3, null);
-	}
-	sonoIdx = 0;  // sonoBuf の 0 行目が最新
-	render(dataColor, dataHeight);
-	drawMs += performance.now() - t0;
-	drawCount++;
-	// 1 秒ごと。読み込み中の表示は、読み込めたらすぐ消す (停止中は次の描画が無いので)
-	if (now - drawSince > 1000 || ! ok || infoLoading) {
-	    infoLoading = ! ok;
-	    setInfo((ok ? "" : "CQT データ読み込み中… ") +
-		    "描画 " + (drawCount ? drawMs / drawCount : 0).toFixed(2) + "ms" +
-		    " | " + (leadTime >= 0 ? "先行 " : "遅延 ") + Math.abs(leadTime).toFixed(2) + "秒");
-	    drawSince = now; drawMs = 0; drawCount = 0;
-	}
-    }
-
-    function setupData(mediaElement, canvasElement, infoElement, url) {
-	initCanvas(mediaElement, canvasElement, infoElement);
-	leadTime = num("cqtlead", 0.1);
-	mixLUT = buildMixLUT();
-	setInfo("CQT データ読み込み中…");
-	const indexUrl = new URL(url, window.location.href);
-	fetch(indexUrl).then(res => {
-	    if (! res.ok) { throw new Error("HTTP " + res.status); }
-	    return res.json();
-	}).then(idx => {
-	    if (idx.format !== "cqtdata-1" || idx.width !== CROP_W) {
-		throw new Error("形式が違います: " + idx.format + " width=" + idx.width);
-	    }
-	    data = idx;
-	    data.base = new URL(".", indexUrl).href;
-	    log("data " + url + " rows=" + data.rows + " chunks=" + data.chunks);
-	    requestAnimationFrame(dataLoop);
-	}).catch(err => {
-	    console.error("liveCQT: data load failed", url, err);
-	    setInfo("CQT データを読めません: " + err.message);
-	});
-    }
-
-    return { setup, start, setupData };
+    return { setup, start };
 })();

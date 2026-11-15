@@ -71,40 +71,24 @@ if ('timeScheduleOffset' in config) {
     context.tailTime -= offset;
 }
 
-// CQT (spectrum) の表示方法 (cqt.js)。
-//   "video": spectrum 動画 (movie.sh が作る showcqt の動画) を同期再生する
-//   "data":  事前計算データ (movie/cqtdata.sh が作る。設定 JSON の spectrumData) を
-//            canvas に描く。動画より通信量・負荷が小さく、遅れも無い
-//   "live":  再生中の音声をリアルタイムに解析して描く (試作。解析窓の分だけ遅れる)
-// 既定は spectrumData があれば "data"、無ければ "video"。URL の cqt= で選べる:
-//   cqt=video: 動画, cqt=data: データ, cqt=1: live, cqt=2: live と動画を並べる,
-//   cqt=3: データと動画を並べる (比較用)
-// live は YouTube や別オリジンの動画の音声を取り出せないので使えない。
+// CQT (spectrum) の表示方法。
+//   既定: 再生中の音声をリアルタイムに解析して canvas に描く (cqt.js)。
+//         spectrum 動画は読み込まない。解析窓の分だけ少し遅れる (0.06〜0.12 秒程度)
+//   spectrum 動画: YouTube や別オリジンの動画 (音声を取り出せない) の時、
+//         または URL に cqt=video がある時。
+//   cqt=2: リアルタイム解析と spectrum 動画を並べる (比較用)
 const spectrumMode = (() => {
-    const hasCQT = (typeof liveCQT !== "undefined");
-    const canData = hasCQT && !! config.spectrumData;
-    const fallback = canData ? { video: false, canvas: "data" } : { video: true, canvas: null };
     const m = getURLParams("cqt");
-    if (m === "video") {
+    if (m === "video" || typeof liveCQT === "undefined") {
 	return { video: true, canvas: null };
     }
-    if (m === "data" || m === "3") {
-	if (! canData) {
-	    console.warn("cqt: spectrumData が無いので spectrum 動画を使います");
-	    return { video: true, canvas: null };
-	}
-	return { video: (m === "3"), canvas: "data" };
+    const src = config.bigvideo || config.file;
+    if (/^https:\/\/www\.youtube\.com\//.test(src) ||
+	new URL(src, window.location.href).origin !== window.location.origin) {
+	console.warn("cqt: この動画の音声は解析できないので spectrum 動画を使います", src);
+	return { video: true, canvas: null };
     }
-    if (m === "1" || m === "2") {
-	const src = config.bigvideo || config.file;
-	if (! hasCQT || /^https:\/\/www\.youtube\.com\//.test(src) ||
-	    new URL(src, window.location.href).origin !== window.location.origin) {
-	    console.warn("cqt: この動画の音声は解析できません", src);
-	    return fallback;
-	}
-	return { video: (m === "2"), canvas: "live" };
-    }
-    return fallback;
+    return { video: (m === "2"), canvas: "live" };
 })();
 
 let boot = 0;
@@ -151,11 +135,7 @@ function init() {
     }
     if (spectrumMode.canvas) {
 	$("#liveSpectrumContainer").style.display = "block";
-	if (spectrumMode.canvas === "data") {
-	    liveCQT.setupData(masterVideo, $("#liveSpectrum"), $("#liveSpectrumInfo"), config.spectrumData);
-	} else {
-	    liveCQT.setup(masterVideo, $("#liveSpectrum"), $("#liveSpectrumInfo"));
-	}
+	liveCQT.setup(masterVideo, $("#liveSpectrum"), $("#liveSpectrumInfo"));
     }
     const refUrl = config.reference;
     if (refUrl) {

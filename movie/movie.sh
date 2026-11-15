@@ -1,5 +1,5 @@
 #! /bin/bash
-# require) ffmpeg, ImageMagick, zopflipng, cwebp
+# require) ffmpeg, ImageMagick, zopflipng
 
 set -euo pipefail
 
@@ -22,7 +22,3 @@ ffmpeg -y -i $b-tmp.wav -filter_complex "showcqt=size=600x180:timeclamp=0.5:rate
 # -movflags +faststart: メタデータ (moov) を先頭に置く (ブラウザでの読み込み開始が速くなる)
 ffmpeg -y -i $b-spectrum.gif -r $r -pix_fmt yuv420p -movflags +faststart $b-spectrum.mp4
 rm -f $b-tmp.wav $b-spectrum.gif
-
-# 事前計算 CQT データ ($b-cqt/。設定 JSON の spectrumData に $b-cqt/index.json を書くと、
-# spectrum 動画の代わりにこちらで表示する。通信量は動画の 1/15 程度)
-bash "$(dirname "$0")/cqtdata.sh" $b
