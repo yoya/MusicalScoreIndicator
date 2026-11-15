@@ -1,7 +1,6 @@
 {
     "file": "https://www.youtube.com/watch?v=HrXltQDEb4c",
     "waveimage": "movie/r.strauss/EinHeldenleben-1-reiner-chicago-wave.png",
-    "spectrum":  "movie/r.strauss/EinHeldenleben-1-reiner-chicago-spectrum.mp4",
     "timeSchedule": [
 	{ "comment": "1. Der Held (The Hero)", "rehearsal": [
             ["||", "4s"], [1, "28.6s"],

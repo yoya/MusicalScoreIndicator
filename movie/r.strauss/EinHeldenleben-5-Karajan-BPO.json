@@ -2,7 +2,6 @@
     "file": "movie/r.strauss/EinHeldenleben-Karajan-BPO-noaudio.mp4",
     "bigvideo": "https://www.youtube.com/watch?v=pd5SyV_BLAM",
     "waveimage": "movie/r.strauss/EinHeldenleben-Karajan-BPO-wave.png",
-    "spectrum":  "movie/r.strauss/EinHeldenleben-5-Karajan-BPO-spectrum.mp4",
     "timeSchedule": [
         { "comment": "5. Des Helden Walstatt (The hero's battlefield)", "rehearsal": [
             [42, "20:26"], [43, "20:40.2"],

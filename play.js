@@ -98,6 +98,10 @@ const spectrumMode = (() => {
     // 既定 / data / 3: データを試し、無ければ live、それも無理なら spectrum 動画
     return { video: (m === "3"), data: true, live: canLive && m !== "data" && m !== "3" };
 })();
+// 事前計算データがある曲は spectrum 動画を消して設定からも外している (spectrum が無い)
+if (! config.spectrum) {
+    spectrumMode.video = false;
+}
 // データの有無は読んでみないと分からないので、設定を読んだらすぐ取りに行く
 const cqtDataPromise = spectrumMode.data ? liveCQT.loadData(cqtDataUrl) : null;
 if (cqtDataPromise) {
@@ -182,6 +186,10 @@ function init() {
 
 // 事前計算データもリアルタイム解析も使えない時に、spectrum 動画を後から読み込んで同期再生する
 function useSpectrumVideo() {
+    if (! config.spectrum) {  // spectrum 動画も無い: CQT 表示は無し
+	console.warn("cqt: 事前計算データも spectrum 動画も無いので CQT を表示しません");
+	return;
+    }
     const v = $("#spectrum");
     v.style.display = "";
     v.setSource(config.spectrum);

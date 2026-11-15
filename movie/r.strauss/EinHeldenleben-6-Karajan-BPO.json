@@ -2,7 +2,6 @@
     "file": "movie/r.strauss/EinHeldenleben-Karajan-BPO-noaudio.mp4",
     "bigvideo": "https://www.youtube.com/watch?v=pd5SyV_BLAM",
     "waveimage": "movie/r.strauss/EinHeldenleben-Karajan-BPO-wave.png",
-    "spectrum":  "movie/r.strauss/EinHeldenleben-6-Karajan-BPO-spectrum.mp4",
     "timeSchedule": [
 	{ "comment": "6. Des Helden Friedenswerke (The hero's works of peace)", "rehearsal": [
             ["|", "28:44"],

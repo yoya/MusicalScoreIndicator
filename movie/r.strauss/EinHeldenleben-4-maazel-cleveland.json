@@ -1,7 +1,6 @@
 {
     "file": "https://www.youtube.com/watch?v=AQt75_A89v0",
     "waveimage": "movie/r.strauss/EinHeldenleben-4-maazel-cleveland-wave.png",
-    "spectrum":  "movie/r.strauss/EinHeldenleben-4-maazel-cleveland-spectrum.mp4",
     "timeSchedule": [
         { "comment": "4. Des Helden Walstatt (The hero's battlefield)", "rehearsal": [
             [42, "0s"], [43, "14.9s"],

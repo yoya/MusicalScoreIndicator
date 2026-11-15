@@ -1,7 +1,6 @@
 {
     "file": "https://www.youtube.com/watch?v=oHgxz9t7uZk",
     "waveimage": "movie/r.strauss/EinHeldenleben-2-reiner-chicago-wave.png",
-    "spectrum":  "movie/r.strauss/EinHeldenleben-2-reiner-chicago-spectrum.mp4",
     "timeSchedule": [
         { "comment": "2. Des Helden Widersacher (The Hero's Adversaries)", "rehearsal": [
             ["||", "0s"], [14, "13.2s"], [15, "24.5s"],

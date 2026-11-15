@@ -2,7 +2,6 @@
     "file": "movie/r.strauss/EinHeldenleben-Karajan-BPO-noaudio.mp4",
     "bigvideo": "https://www.youtube.com/watch?v=pd5SyV_BLAM",
     "waveimage": "movie/r.strauss/EinHeldenleben-Karajan-BPO-wave.png",
-    "spectrum":  "movie/r.strauss/EinHeldenleben-1-Karajan-BPO-spectrum.mp4",
     "timeSchedule": [
         { "comment": "1. Der Held (The Hero)", "rehearsal": [
             ["||", "2s"], [1, "28.1s"],

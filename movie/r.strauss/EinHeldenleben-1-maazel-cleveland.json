@@ -1,7 +1,6 @@
 {
     "file": "https://www.youtube.com/watch?v=hsRcKgX2sKE",
     "waveimage": "movie/r.strauss/EinHeldenleben-1-maazel-cleveland-wave.png",
-    "spectrum":  "movie/r.strauss/EinHeldenleben-1-maazel-cleveland-spectrum.mp4",
     "timeSchedule": [
 	{ "comment": "1. Der Held (The Hero)", "rehearsal": [
             ["||", "1s"], [1, "29.1s"],

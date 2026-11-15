@@ -1,7 +1,6 @@
 {
     "file": "https://www.youtube.com/watch?v=Us7q96d25Qw",
     "waveimage": "movie/r.strauss/EinHeldenleben-4-reiner-chicago-wave.png",
-    "spectrum":  "movie/r.strauss/EinHeldenleben-4-reiner-chicago-spectrum.mp4",
     "timeSchedule": [
         { "comment": "4. Des Helden Walstatt (The hero's battlefield)", "rehearsal": [
             [42, "0s"], [43, "15.1s"],
