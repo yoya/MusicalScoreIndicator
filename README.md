@@ -48,6 +48,22 @@ play.html は spectrum 動画 (showcqt) と同じ絵を canvas に描く (cqt.js
 2. リアルタイム解析: データが無い時に、再生中の音声を解析して描く。0.06〜0.12 秒ほど遅れる
 3. spectrum 動画: データが無い YouTube や別オリジンの動画の時
 
+### 事前計算データ (WebP) にした理由
+
+- リアルタイム解析では、表示が音より必ず遅れる。CQT は低音ほど長い時間の音
+  (解析窓) から計算するが、再生中は先の音を使えず、過去の音だけで計算するので、
+  窓の長さの半分ほど遅れる (showcqt と同じ窓長で低音 0.2 秒程度、窓長を半分にした
+  fastcqt でも低音 0.12 秒、高音 0.06 秒程度)。事前計算なら、ffmpeg (spectrum 動画) と
+  同じく窓の中心を再生位置に合わせられるので遅れが無く、さらに少し先 (0.1 秒) を表示できる
+- 遅れを妥協しても、YouTube の動画では使えない。リアルタイム解析は、ページ内の
+  video 要素の音声を Web Audio (MediaElementSource) で取り出して解析するが、
+  YouTube の動画は別オリジン (youtube.com) の iframe の中で再生されるので、
+  ブラウザのセキュリティ (同一オリジンポリシー) により音声を取り出せない
+  (IFrame API でも再生位置などは取れるが音声データは取れない)。
+  事前計算データは再生位置だけで引けるので、YouTube の曲にも使える
+- spectrum 動画 (1 フレームごとに絵を持つ動画) と比べて通信量が 1/10 程度で、
+  2 本目の動画を同期再生する負荷やずれも無い
+
 ```
 % bash movie/cqtdata.sh movie/debussy/images-Iberia-2-boulez.json
 => movie/debussy/images-Iberia-2-boulez-cqt.webp
