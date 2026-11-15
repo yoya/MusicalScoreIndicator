@@ -162,12 +162,34 @@ const timeToString = (t) => {
     return (hms[0])? (h+":"+m+":"+ss+""): (m+":"+ss+"");
 }
 
+// 時間表記を秒に変換する。
+//   単位付き:     "1h2m3.5s" "1h1s" "1h" "4m" "1m05s" "14m10.5s" "90s"
+//                 (h, m, s はそれぞれ省略できるが、並びは h → m → s。
+//                  最後の s も省略可: "1m30" は 90 秒)
+//   コロン区切り: "1:00:01" "10:19.5" (時:分:秒 / 分:秒)
+//   数値のみ:     "90" "-12.5" "1e-7" (秒。プログラムが内部で作る表記を含む)
+// 以前は h/m/: で区切って 60 倍ずつ足していたので、"1h1s" が 61 秒になり、
+// "1h" や "4m" のように単位で終わる表記は NaN になっていた。
+// 解釈できない表記は NaN を返し、console.warn で知らせる。
+const TIME_NUM = "[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][-+]?\\d+)?";
+const TIME_UNIT_RE = new RegExp("^(?:(" + TIME_NUM + ")h)?(?:(" + TIME_NUM + ")m)?(?:(" + TIME_NUM + ")s?)?$");
+const TIME_COLON_RE = new RegExp("^" + TIME_NUM + "(?::" + TIME_NUM + ")+s?$");
 const stringToTime = (s) => {
-    let t = 0;
-    for (const tt of s.split(/h|m|:/)) {
-        t = t * 60 + parseFloat(tt);
+    const str = String(s).trim();
+    if (TIME_COLON_RE.test(str)) {  // 時:分:秒 / 分:秒
+        let t = 0;
+        for (const tt of str.replace(/s$/, "").split(":")) {
+            t = t * 60 + parseFloat(tt);
+        }
+        return t;
     }
-    return t;
+    const m = str.match(TIME_UNIT_RE);
+    if (m && (m[1] !== undefined || m[2] !== undefined || m[3] !== undefined)) {
+        const [h, min, sec] = [m[1], m[2], m[3]].map(v => (v === undefined) ? 0 : parseFloat(v));
+        return h * 3600 + min * 60 + sec;
+    }
+    console.warn("stringToTime: 解釈できない時間表記", s);
+    return NaN;
 }
 
 let currentColorHue = 0;
