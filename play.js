@@ -622,13 +622,18 @@ function main() {
 	startTime = context.headTime;
     }
     let startTimeDone = (startTime)? false: true;
+    let initialReady = false;  // 初回の読み込み完了処理が済んだか
     /*
      * video event handler
      */
+    // 読み込み完了時の初期化。canplaythrough はシーク後などにも再発火するが、
+    // その度に pause や onPause (再生リトライの停止) や親への通知をすると
+    // 再生を妨げたり list.js の読み込みカウントがずれるので、初回だけ処理する。
     masterVideo.on("canplaythrough", e => {
-	if (context.playing)  {
+	if (initialReady || context.playing)  {
             return ;
         }
+	initialReady = true;
 	videoCluster.pauseVideo();
         onPause();
         // Loading 表示を上書き
