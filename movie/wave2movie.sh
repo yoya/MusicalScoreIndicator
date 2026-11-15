@@ -29,4 +29,4 @@ ffmpeg -y -i "$i" -r $r  $opt_duration -filter_complex \
        [0:a]showvolume=w=100:h=50:b=4:o=v:t=0:v=0,pad=210:100[vs]; \
        [sw][vs]overlay=w[bg]; \
        [ss][bg]overlay=0:H-h[out]" \
-       -map "[out]" -map 0:a "$o"
+       -map "[out]" -map 0:a -movflags +faststart "$o"  # faststart: メタデータを先頭に置く

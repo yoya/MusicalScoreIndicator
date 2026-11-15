@@ -19,5 +19,6 @@ zopflipng -y $b-wave.png $b-wave.png
 ffmpeg -y -i $b.mp4 $b-tmp.wav ;
 
 ffmpeg -y -i $b-tmp.wav -filter_complex "showcqt=size=600x180:timeclamp=0.5:rate=$r:gamma=5:gamma2=5:fontcolor=r(1)+g(1)+b(1),crop=448:136:100" $b-spectrum.gif
-ffmpeg -y -i $b-spectrum.gif -r $r -pix_fmt yuv420p $b-spectrum.mp4
+# -movflags +faststart: メタデータ (moov) を先頭に置く (ブラウザでの読み込み開始が速くなる)
+ffmpeg -y -i $b-spectrum.gif -r $r -pix_fmt yuv420p -movflags +faststart $b-spectrum.mp4
 rm -f $b-tmp.wav $b-spectrum.gif
