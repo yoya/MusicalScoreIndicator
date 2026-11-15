@@ -54,6 +54,8 @@ const _$ = e => {
 		    },
 		    'onStateChange': () => {
 			const state = player.getPlayerState();
+			// 診断ログ用 (debug.js)。-1:未開始 0:終了 1:再生 2:停止 3:バッファ 5:頭出し
+			e.dispatchEvent(new CustomEvent("ytstate", {detail: state}));
 			if (playerContext.state !== state) {
 			    switch (state) {
 			    case -1: //  => no-start
@@ -103,7 +105,17 @@ const _$ = e => {
 	    if (! e.seekTo) { e.seekTo = (t) => { e.currentTime = t; } }
 	    if (! e.getCurrentTime) { e.getCurrentTime = () => e.currentTime }
 	    if (! e.getDuration) { e.getDuration = () => e.duration }
-	    if (! e.playVideo) { e.playVideo = e.play }
+	    if (! e.playVideo) {
+		e.playVideo = () => {
+		    // iOS の自動再生制限などで play() が拒否された事を診断ログ (debug.js) に伝える
+		    const p = e.play();
+		    if (p && p.catch) {
+			p.catch(err => {
+			    e.dispatchEvent(new CustomEvent("playrejected", {detail: err.name + ": " + err.message}));
+			});
+		    }
+		}
+	    }
 	    if (! e.pauseVideo) { e.pauseVideo = e.pause }
 	    if (! e.setVolume) { e.setVolume = (v) => { e.volume = v/100; } }
 	    if (! e.getVolume) { e.getVolume = () => e.volume * 100 }

@@ -2,7 +2,11 @@
 <html>
   <head>
     <meta charset="UTF-8"/>
-    <link rel="stylesheet" href="play.css">
+    <!-- ?v= はブラウザに古い css/js を使わせないためのもの。
+         play.css / utils.js / debug.js / play.js を変更したら日付を更新する。
+         一覧ページ (*/*.html) も utils.js / list.js を ?v= 付きで読んでいるので、
+         utils.js / list.js を変更したらそちらも合わせて更新する。 -->
+    <link rel="stylesheet" href="play.css?v=20261115.2">
   </head>
   <body>
     <div class="flex flex-center">
@@ -82,14 +86,15 @@
       </div>
     </div>
     <div class="flex flex-center">
-      <div class="row">
+      <div class="row" id="progressBarRow">
         <div id="progressBarContainer" style="background-color: lightgray;">
           <canvas id="progressBar" width="1080" height="120"> </canvas>
           <img src="" id="waveimage" style="display:none" />
         </div>
       </div>
     </div>
-    <script src="utils.js"> </script>
-    <script src="play.js"> </script>
+    <script src="utils.js?v=20261115.2"> </script>
+    <script src="debug.js?v=20261115.2"> </script>
+    <script src="play.js?v=20261115.4"> </script>
   </body>
 </html>

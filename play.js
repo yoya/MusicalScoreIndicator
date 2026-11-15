@@ -1,6 +1,21 @@
 "use strict";
 
 /*
+ * 診断ログ (debug.js) の呼び出し口。
+ * キャッシュされた古い play.html が debug.js を読み込まずに新しい play.js を
+ * 読んだ場合でも止まらないよう、debug.js の関数が無ければ何もしない。
+ */
+const dlog = (msg) => {
+    if (typeof debugLog === "function") { debugLog(msg); }
+};
+const dattach = (e, label, events) => {
+    if (typeof debugAttachMedia === "function") { debugAttachMedia(e, label, events); }
+};
+const dsetTimeSource = (fn) => {
+    if (typeof debugSetTimeSource === "function") { debugSetTimeSource(fn); }
+};
+
+/*
  * https://developers.google.com/youtube/iframe_api_reference?hl=ja
  */
 
@@ -80,6 +95,17 @@ function init() {
 	videoCluster = new makeVideoCluster($("#video"), [$("#spectrum")]);
     }
     masterVideo = videoCluster.getMaster();
+    // 診断ログ (URL に debug=1 がある時のみ。debug.js)
+    dsetTimeSource(() => masterVideo.getCurrentTime());
+    dlog("init master=" + (config.bigvideo ? "bigvideo " + config.bigvideo : "video " + config.file));
+    dattach(masterVideo, "master",
+		     ["play", "playing", "pause", "waiting", "stalled", "ended", "error",
+		      "emptied", "seeking", "playrejected", "ytstate"]);
+    const slaveEvents = ["pause", "waiting", "stalled", "ended", "error", "emptied", "playrejected"];
+    if (config.bigvideo) {
+	dattach($("#video"), "video", slaveEvents);
+    }
+    dattach($("#spectrum"), "spectrum", slaveEvents);
     const refUrl = config.reference;
     if (refUrl) {
 	const r = loadFile(refUrl);
@@ -136,6 +162,7 @@ function makeVideoCluster(videoMaster, videoSlaves) {
             const absdiff = Math.abs(currentTime - t)
 	    // 同期補正 (0.05秒ほどズレるのを観測。0.1 まで許容)
             if (0.1 < absdiff) {
+		dlog("sync seek " + v.id);  // 頻発していないかを見る
 		v.seekTo(currentTime);
 	    }
 	}
@@ -175,6 +202,17 @@ function timeScheduleInterpolate(schedule, refSched) {
     }
 }
 
+// ポインタ位置を canvas 内部の座標 (width/height 属性の座標系) に変換する。
+// CSS で縮小表示されている (画面幅が狭い iPad 縦置き等) と offsetX は
+// 表示上の座標なのでずれる。範囲外は端に丸める。
+function canvasPosition(e, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const clamp = (v, max) => Math.min(Math.max(v, 0), max);
+    const x = (e.clientX - rect.left) * canvas.width / rect.width;
+    const y = (e.clientY - rect.top) * canvas.height / rect.height;
+    return [clamp(x, canvas.width - 1), clamp(y, canvas.height - 1)];
+}
+
 // 進捗バーで指定された場所の時間
 function positionToTime(x, width) {
     const { headTime, tailTime } = context;
@@ -187,6 +225,23 @@ function timeToPosition(t, width) {
     return ((t - headTime) / (tailTime - headTime)) * width;
 }
 
+// 初回の読み込み完了 (metadata 取得 or canplaythrough) が済んだか。
+// 済む前に親から来た seek / play は whenReady で保留し、済んだら実行する。
+let initialReady = false;
+let readyCallbacks = [];
+function whenReady(fn) {
+    if (initialReady) {
+	fn();
+    } else {
+	readyCallbacks.push(fn);
+    }
+}
+function runReadyCallbacks() {
+    const callbacks = readyCallbacks;
+    readyCallbacks = [];
+    callbacks.forEach(fn => fn());
+}
+
 // 再生状態に手を加えずにシークだけする
 function seekVideo(t) {
     context.currentTime = t;
@@ -196,16 +251,32 @@ function seekVideo(t) {
 // 再生が始まるまで playVideo を繰り返し、始まったら親に知らせる。
 // (iframe 越しなどで一度の playVideo では再生されない事がある)
 // 新しく呼ばれたら前のリトライは止める。上限回数で諦める。
+//
+// 読み込み完了 (initialReady) 前に呼ばれた場合 (iPad で回線が混んでいる時など):
+// - 最初の playVideo はすぐ呼ぶ。iOS は操作 (タップ) の中で呼んだ play() でないと
+//   音声付きの再生を許さないので、待ってから呼ぶと拒否される。
+// - その後は読み込み完了まで playVideo を呼ばずに待つ (リトライ回数にも数えない)。
+//   以前は 2 秒で諦めていたので、メタデータが遅いと再生されなかった。
+// - タイマーが動いている間は「再生指示が保留中」として扱い、onInitialReady は
+//   一時停止しない (isPlayPending)。
 let playRetryTimerId = null;
+const PLAY_WAIT_READY_MAX = 60 * 1000;  // 読み込み完了を待つ上限 (ms)
 function cancelPlayRetry() {
     if (playRetryTimerId) {
 	clearTimeout(playRetryTimerId);
 	playRetryTimerId = null;
     }
 }
+function isPlayPending() {
+    return playRetryTimerId !== null;
+}
 function playWithRetry(maxRetry = 10, interval = 200) {
     cancelPlayRetry();
+    clearPauseOnPlayGuard();  // 直前のシークの「play を打ち消す」処理に止められないように
     let count = 0;
+    let calledBeforeReady = false;
+    const startedAt = Date.now();
+    dlog("playWithRetry start" + (initialReady ? "" : " (before ready)"));
     const _play = () => {
 	playRetryTimerId = null;
 	if (context.playing) {
@@ -213,15 +284,38 @@ function playWithRetry(maxRetry = 10, interval = 200) {
 	    sendMessage('playstarted', {currentTime: t});
 	    return ;
 	}
-	if (count >= maxRetry) {
-	    console.error("playWithRetry: retry over", {count});
-	    return ;
+	if (initialReady) {
+	    if (count >= maxRetry) {
+		console.error("playWithRetry: retry over", {count});
+		dlog("playWithRetry GIVE UP after " + count);
+		return ;
+	    }
+	    count++;
+	    videoCluster.playVideo();
+	} else {
+	    if (Date.now() - startedAt > PLAY_WAIT_READY_MAX) {
+		dlog("playWithRetry GIVE UP (not ready in " + PLAY_WAIT_READY_MAX / 1000 + "s)");
+		return ;
+	    }
+	    if (! calledBeforeReady) {  // 操作の中で一度だけ呼んでおく
+		calledBeforeReady = true;
+		videoCluster.playVideo();
+	    }
 	}
-	count++;
-	videoCluster.playVideo();
 	playRetryTimerId = setTimeout(_play, interval);
     }
     _play();
+}
+
+// setCurrentTime が停止中に仕掛ける「シーク直後の play を pause で打ち消す」処理。
+// ユーザーが再生を指示した時 (playWithRetry) は外す。外さないと、読み込み完了直後
+// (初期位置へのシーク直後) の 500ms 以内にタップした再生が止められてしまう。
+let pauseOnPlayGuard = null;
+function clearPauseOnPlayGuard() {
+    if (pauseOnPlayGuard) {
+	masterVideo.off("play", pauseOnPlayGuard);
+	pauseOnPlayGuard = null;
+    }
 }
 
 function setCurrentTime(t) {
@@ -229,12 +323,15 @@ function setCurrentTime(t) {
 	seekVideo(t);
     } else {
 	seekVideo(t);
-	let fn;
-	masterVideo.on("play", fn = () => {
+	clearPauseOnPlayGuard();
+	const fn = pauseOnPlayGuard = () => {
 	    videoCluster.pauseVideo();
-	});
+	};
+	masterVideo.on("play", fn);
 	setTimeout(() => { // pause の時は上の off が動かないので一旦これで
-	    masterVideo.off("play", fn);
+	    if (pauseOnPlayGuard === fn) {
+		clearPauseOnPlayGuard();
+	    }
 	}, 500);
     }
 }
@@ -597,6 +694,7 @@ function tickFunction() {
     const currentTime = masterVideo.getCurrentTime();
     if (context.playing) {
 	if (currentTime < context.headTime) {
+	    dlog("before headTime, seek to " + context.headTime);
 	    setCurrentTime(context.headTime);
 	}
         currentVideo();
@@ -604,7 +702,7 @@ function tickFunction() {
         showProgressBar();
 	videoCluster.syncByMaster();
 	if (currentTime > context.tailTime) {
-	    finished();
+	    finished("tailTime " + context.tailTime);
 	}
     }
 }
@@ -622,36 +720,55 @@ function main() {
 	startTime = context.headTime;
     }
     let startTimeDone = (startTime)? false: true;
-    let initialReady = false;  // 初回の読み込み完了処理が済んだか
     /*
      * video event handler
      */
-    // 読み込み完了時の初期化。canplaythrough はシーク後などにも再発火するが、
-    // その度に pause や onPause (再生リトライの停止) や親への通知をすると
-    // 再生を妨げたり list.js の読み込みカウントがずれるので、初回だけ処理する。
-    masterVideo.on("canplaythrough", e => {
+    // 読み込み完了時の初期化。
+    // - iPhone はユーザー操作まで metadata しか読まず canplaythrough が来ない
+    //   事があるので、loadedmetadata でも初期化する (シーク・duration 取得は可能)。
+    //   YouTube は onReady で canplaythrough を発火する。
+    // - canplaythrough はシーク後などにも再発火するが、その度に pause や
+    //   onPause (再生リトライの停止) をすると再生を妨げるので、初回だけ処理する。
+    const onInitialReady = () => {
 	if (initialReady || context.playing)  {
             return ;
         }
 	initialReady = true;
-	videoCluster.pauseVideo();
-        onPause();
+	// 読み込み中に再生が指示されていたら (iPad で回線が遅い時など)、
+	// 一時停止も初期位置へのシークもしない。以前はここで pause して
+	// 指示された再生を潰し、タップした位置も失っていた。
+	const playPending = isPlayPending();
+	dlog("initial ready" + (playPending ? " (play pending: keep playing)" : ""));
+	if (! playPending) {
+	    videoCluster.pauseVideo();  // YouTube は autoplay で始まるので止める
+            onPause();
+	}
         // Loading 表示を上書き
         $("#resetButton").innerText = "Reset";
         $("#resetButton").style.backgroundColor = "#FCB";
-        $("#playButton").innerText = "Play";
+	if (! context.playing) {
+            $("#playButton").innerText = "Play";
+	}
         if (! startTimeDone) {  // t パラメータによる開始位置設定は一度だけ
-            setCurrentTime(startTime);
-            context.hitTime = startTime;
+	    if (! playPending) {
+		setCurrentTime(startTime);
+		context.hitTime = startTime;
+	    }
             startTimeDone = true;
         }
-	sendMessage('canplaythrough', {});
-    });
+	sendMessage('ready', {});
+	runReadyCallbacks();  // 準備完了待ちだった親からの seek / play を実行
+    };
+    masterVideo.on(["loadedmetadata", "canplaythrough"], onInitialReady);
+    // リスナー登録前に読み込み済みの場合 (キャッシュ等)。YouTube の iframe は readyState を持たない。
+    if (masterVideo.readyState >= 1) {  // HAVE_METADATA
+	onInitialReady();
+    }
     masterVideo.on("durationchange", durationVideo);
     masterVideo.on("playing", onPlaying);
     masterVideo.on("pause", onPause);
     masterVideo.on("ended", () => {
-	finished();
+	finished("ended event");
     });
     masterVideo.on("volumechange", () => {
 	const volume = masterVideo.getVolume();
@@ -684,12 +801,19 @@ function main() {
     });
     $("#playButton").on("click", (e) => {
         cancelPlayRetry();  // ボタン操作を優先する
+        dlog("user: " + (context.playing ? "Pause" : "Play") + " button");
         if (context.playing) {
 	    videoCluster.pauseVideo();
         } else {
-	    videoCluster.playVideo();
-	    const t = masterVideo.getCurrentTime();
-	    sendMessage('playstarted', {currentTime: t});
+	    if (! startTimeDone) {
+		// 読み込み中に押された。onInitialReady は再生中は初期位置へシークしないので、
+		// t パラメータの開始位置へはここで合わせる。
+		seekVideo(startTime);
+		context.hitTime = startTime;
+		startTimeDone = true;
+	    }
+	    // 読み込み中に押されても再生が始まるまで待ち、始まったら親に知らせる
+	    playWithRetry();
         }
     });
     $("#prevButton").on("click", (e) => {
@@ -728,11 +852,14 @@ function main() {
     $("#progressBarContainer").on("pointerdown", (e) => {
         e.preventDefault();
         if (! e.buttons) { return ; }
-        const { width, height } = $("#progressBar");
-        let { offsetX, offsetY } = e;
-        const t = hitProgressBar(offsetX, offsetY, width, height);
+        const canvas = $("#progressBar");
+        const { width, height } = canvas;
+        const [x, y] = canvasPosition(e, canvas);
+        const t = hitProgressBar(x, y, width, height);
+        dlog("user: tap progressBar → " + t.toFixed(1));
         hitVideo(t);
         seekVideo(t);  // 直後に再生するので setCurrentTime の pause 抑止は使わない
+        startTimeDone = true;  // 選んだ位置を優先 (t パラメータの開始位置で上書きしない)
         showProgressBar();
         showRehearsalProgressBar();
         playWithRetry();
@@ -740,11 +867,14 @@ function main() {
     $("#rehearsalProgressBarContainer").on("pointerdown", (e) => {
         e.preventDefault();
         if (! e.buttons) { return ; }
-        const { width, height } = $("#rehearsalProgressBar");
-        let { offsetX, offsetY } = e;
-        const t = hitRehearsalProgressBar(offsetX, offsetY, width, height);
+        const canvas = $("#rehearsalProgressBar");
+        const { width, height } = canvas;
+        const [x, y] = canvasPosition(e, canvas);
+        const t = hitRehearsalProgressBar(x, y, width, height);
+        dlog("user: tap rehearsalBar → " + t.toFixed(1));
         hitVideo(t);
         seekVideo(t);  // 直後に再生するので setCurrentTime の pause 抑止は使わない
+        startTimeDone = true;  // 選んだ位置を優先 (t パラメータの開始位置で上書きしない)
         showProgressBar();
         showRehearsalProgressBar();
         playWithRetry();
@@ -756,7 +886,8 @@ function main() {
     $("#volumeRange").value = masterVideo.getVolume();
 }
 
-function finished() {
+function finished(reason) {
+    dlog("finished (" + reason + ")");
     videoCluster.pauseVideo();
     context.hitTime = 0;
     if (iframe_index != null) {
@@ -774,6 +905,9 @@ function sendMessage(method, params) {
 	const v = params[k];
 	map.set(k, v);
     }
+    if (window.parent !== window) {
+	dlog("→parent " + method);
+    }
     window.parent.postMessage(map, "*");
 }
 
@@ -785,40 +919,33 @@ window.addEventListener("message", (message) => {
 	return ;  // 多分、YouTube のメッセージなので skip する
     }
     const method = map.get("method");
+    if (message.source !== window) {  // 単体表示の時に自分宛てに送ったものは除く
+	dlog("←parent " + method + (map.has('startTime') ? " " + map.get('startTime') : ""));
+    }
     if (method == "index") {
 	iframe_index = map.get('index');
     } else if (method == "seek") {  // 初期表示
 	const startTime = map.get('startTime');
 	setURLParams("t", startTime);
-	const _seek = function() {
-	    if (videoCluster && videoCluster.getMaster().isPaused()) {
-		setCurrentTime(startTime);
-		context.hitTime = startTime;
-		showProgressBar();
-		showRehearsalProgressBar();
-	    } else {
-		setTimeout(_seek, 100);
-	    }
-	}
-	_seek();
+	whenReady(() => {  // 読み込み完了前ならそれまで保留
+	    setCurrentTime(startTime);
+	    context.hitTime = startTime;
+	    showProgressBar();
+	    showRehearsalProgressBar();
+	});
     } else if (method == "play") {  // 連続プレイ
 	const startTime = map.get('startTime');
 	// console.log({method, startTime});
 	setURLParams("t", startTime);
-	const _play = function() {
-	    if (videoCluster && videoCluster.getMaster().isPaused()) {
-		seekVideo(startTime);  // 直後に再生するので pause 抑止は使わない
-		context.hitTime = startTime;
-		showProgressBar();
-		showRehearsalProgressBar();
-		// iframe 越しに play 実行すると delay かけないと
-		// 動かないので、動くまで playVideo を呼ぶ
-		playWithRetry(9, 100);
-	    } else {
-		setTimeout(_play, 100);
-	    }
-	}
-	_play();
+	whenReady(() => {  // 読み込み完了前ならそれまで保留
+	    seekVideo(startTime);  // 直後に再生するので pause 抑止は使わない
+	    context.hitTime = startTime;
+	    showProgressBar();
+	    showRehearsalProgressBar();
+	    // iframe 越しに play 実行すると delay かけないと
+	    // 動かないので、動くまで playVideo を呼ぶ
+	    playWithRetry(9, 100);
+	});
     } else if (method == "pause") {
 	videoCluster.pauseVideo();
     } else if (method == "volume") {

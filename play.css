@@ -35,3 +35,21 @@ text { padding: 0.2em;
 #progressBar {
     margin: 0;
 }
+/*
+ * 画面幅が進捗バー (1080px) より狭い時 (iPad 縦置き、iframe 内など) は縮めて収める。
+ * 中央寄せのままはみ出すと、左端がスクロールしても見えない位置に行ってしまうため。
+ * 縮めた時のクリック位置は play.js の canvasPosition で canvas 内部の座標に戻す。
+ */
+#progressBarRow {
+    min-width: 0;  /* flex item が中身 (canvas) の幅より縮めるように */
+    max-width: 100%;
+}
+#progressBarContainer {
+    max-width: calc(100% - 0.4em);  /* 0.4em: 左右の margin */
+    box-sizing: border-box;
+}
+#progressBar {
+    display: block;
+    max-width: 100%;
+    height: auto;  /* 縦横比を保つ */
+}
