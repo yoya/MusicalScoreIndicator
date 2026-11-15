@@ -81,7 +81,7 @@ const _$ = e => {
 		    playsinline: 1,
 		}
 	    });
-	    e = player.g;
+	    e = player.getIframe();  // player.g は非公開プロパティで、現行 API では undefined
 	    e.playVideo = () => { player.playVideo(); }
 	    e.pauseVideo = () => { player.pauseVideo(); }
 	    e.seekTo = (t) => { player.seekTo(t); }
@@ -89,6 +89,13 @@ const _$ = e => {
 	    e.getDuration = () => { return player.getDuration(); }
 	    e.setVolume = (v) => { return player.setVolume(v); }
 	    e.getVolume = () => (player.getVolume)? player.getVolume(): 100;
+	    // iframe 要素には paused が無いので player state から判定する。
+	    // onReady 前 (getPlayerState 未定義) は操作できないので false を返して待たせる。
+	    e.isPaused = () => {
+		if (! player.getPlayerState) { return false; }
+		const state = player.getPlayerState();
+		return (state !== 1) && (state !== 3);  // 1:playing, 3:buffering
+	    }
 	} else {
 	    // 通常の video 要素
 	    e.src = s
@@ -100,6 +107,7 @@ const _$ = e => {
 	    if (! e.pauseVideo) { e.pauseVideo = e.pause }
 	    if (! e.setVolume) { e.setVolume = (v) => { e.volume = v/100; } }
 	    if (! e.getVolume) { e.getVolume = () => e.volume * 100 }
+	    if (! e.isPaused) { e.isPaused = () => e.paused }
 	    e.load();  // iPhone は明示的に load しないと読み込み開始しない
 	}
     }

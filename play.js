@@ -187,12 +187,45 @@ function timeToPosition(t, width) {
     return ((t - headTime) / (tailTime - headTime)) * width;
 }
 
-function setCurrentTime(t) {
+// 再生状態に手を加えずにシークだけする
+function seekVideo(t) {
     context.currentTime = t;
+    videoCluster.seekTo(t);
+}
+
+// 再生が始まるまで playVideo を繰り返し、始まったら親に知らせる。
+// (iframe 越しなどで一度の playVideo では再生されない事がある)
+// 新しく呼ばれたら前のリトライは止める。上限回数で諦める。
+let playRetryTimerId = null;
+function playWithRetry(maxRetry = 10, interval = 200) {
+    if (playRetryTimerId) {
+	clearTimeout(playRetryTimerId);
+	playRetryTimerId = null;
+    }
+    let count = 0;
+    const _play = () => {
+	playRetryTimerId = null;
+	if (context.playing) {
+	    const t = masterVideo.getCurrentTime();
+	    sendMessage('playstarted', {currentTime: t});
+	    return ;
+	}
+	if (count >= maxRetry) {
+	    console.error("playWithRetry: retry over", {count});
+	    return ;
+	}
+	count++;
+	videoCluster.playVideo();
+	playRetryTimerId = setTimeout(_play, interval);
+    }
+    _play();
+}
+
+function setCurrentTime(t) {
     if (context.playing) {
-	videoCluster.seekTo(t)
+	seekVideo(t);
     } else {
-	videoCluster.seekTo(t)
+	seekVideo(t);
 	let fn;
 	masterVideo.on("play", fn = () => {
 	    videoCluster.pauseVideo();
@@ -262,7 +295,6 @@ function hitVideo(hitTime) {  // progressBar で時間を指示された
     $("#hitTime").innerText = timeToString(hitTime + context.timeScheduleOffset);
     setURLParams("t", Math.round(hitTime*10)/10+"s"); // URL hash に反映
     context.hitTime = hitTime;
-    setCurrentTime(hitTime);
 }
 
 function getRehearsalIdx(currentTime) {
@@ -690,22 +722,10 @@ function main() {
         let { offsetX, offsetY } = e;
         const t = hitProgressBar(offsetX, offsetY, width, height);
         hitVideo(t);
-        setCurrentTime(t);
+        seekVideo(t);  // 直後に再生するので setCurrentTime の pause 抑止は使わない
         showProgressBar();
         showRehearsalProgressBar();
-        // 待たずに play しても無駄
-	// context.playing = true;
-	const _play = () => {
-	    console.log("proBar __play");
-	    if (context.playing) {
-		const t = masterVideo.getCurrentTime();
-		sendMessage('playstarted', {currentTime: t});
-	    } else {
-		videoCluster.playVideo();
-		setTimeout(_play, 500);
-	    }
-	}
-	_play();
+        playWithRetry();
     });
     $("#rehearsalProgressBarContainer").on("pointerdown", (e) => {
         e.preventDefault();
@@ -714,20 +734,10 @@ function main() {
         let { offsetX, offsetY } = e;
         const t = hitRehearsalProgressBar(offsetX, offsetY, width, height);
         hitVideo(t);
-        setCurrentTime(t);
+        seekVideo(t);  // 直後に再生するので setCurrentTime の pause 抑止は使わない
         showProgressBar();
         showRehearsalProgressBar();
-        // 待たずに play しても無駄
-	const _play = () => {
-	    console.log("rehaProBar _play");
-	    if (context.playing) {
-		sendMessage('playstarted', {});
-	    } else {
-		videoCluster.playVideo();
-		setTimeout(_play, 500);
-	    }
-	}
-	_play();
+        playWithRetry();
     });
     $("#volumeRange").on("input", e => {
 	masterVideo.setVolume($("#volumeRange").value);
@@ -771,7 +781,7 @@ window.addEventListener("message", (message) => {
 	const startTime = map.get('startTime');
 	setURLParams("t", startTime);
 	const _seek = function() {
-	    if (videoCluster && videoCluster.getMaster().paused) {
+	    if (videoCluster && videoCluster.getMaster().isPaused()) {
 		setCurrentTime(startTime);
 		context.hitTime = startTime;
 		showProgressBar();
@@ -786,31 +796,14 @@ window.addEventListener("message", (message) => {
 	// console.log({method, startTime});
 	setURLParams("t", startTime);
 	const _play = function() {
-	    if (videoCluster && videoCluster.getMaster().paused) {
-		setCurrentTime(startTime);
+	    if (videoCluster && videoCluster.getMaster().isPaused()) {
+		seekVideo(startTime);  // 直後に再生するので pause 抑止は使わない
 		context.hitTime = startTime;
 		showProgressBar();
 		showRehearsalProgressBar();
-		let retry_delay = 100
-		const __play = function() {
-		    console.log("messsage play __play");
-		    if (context.playing) {
-			// 再生はじまったら親に知らせる
-			const t = masterVideo.getCurrentTime();
-			sendMessage('playstarted', {currentTime: t});
-		    } else {
-			videoCluster.playVideo();
-			// iframe 越しに play 実行すると delay かけないと
-			// 動かないので、動くまで playVideo を呼ぶ
-			retry_delay += 100
-			if (retry_delay < 1000) {
-			    setTimeout(__play, 100);
-			} else {
-			    console.error("__play retry_delay over", {retry_delay});
-			}
-		    }
-		}
-		__play();
+		// iframe 越しに play 実行すると delay かけないと
+		// 動かないので、動くまで playVideo を呼ぶ
+		playWithRetry(9, 100);
 	    } else {
 		setTimeout(_play, 100);
 	    }
