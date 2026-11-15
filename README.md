@@ -9,7 +9,9 @@ sample.json を参考にして下さい。
 
 - movie/sample.mp4 (再生したい動画)
   - ffmpeg -i original.mp4 -vf scale=320:-1 -movflags +faststart sample.mp4
-- movie/sample-wave.png, movie/sample-spectrum.mp4 (movie/movie.sh で movie/sample.mp4 から生成)
+- movie/sample-wave.png, movie/sample-spectrum.mp4, movie/sample-cqt/ (movie/movie.sh で movie/sample.mp4 から生成)
+- 設定 JSON に `"spectrumData": "movie/sample-cqt/index.json"` を書くと、spectrum 動画の代わりに
+  事前計算 CQT データで表示する (下記)
 
 # movie seup
 
@@ -38,6 +40,23 @@ mp4 のメタデータ (moov) がファイル末尾にあると、ブラウザ�
 % bash faststart.sh .             # ディレクトリ以下の *.mp4 を全部処理
 % bash faststart.sh sample.mp4    # ファイルを指定して処理
 ```
+
+## CQT 表示の事前計算データ (spectrumData)
+
+spectrum 動画 (showcqt の動画) は 1 フレームごとに絵を持つので大きい (20 分で 40MB 程度)。
+cqtdata.sh は同じ showcqt の設定で「時刻 × 周波数」の値だけを WebP 画像 (60 秒ごと) に保存し、
+ブラウザ (cqt.js) で同じ絵を描く。通信量は 1/15 程度 (20 分で 3MB 程度)、遅れも無い。
+movie.sh からも呼ばれる。
+
+```
+% cd movie
+% bash cqtdata.sh sample    # sample.mp4 => sample-cqt/ (index.json, 000.webp, ...)
+```
+
+設定 JSON に `"spectrumData": "movie/sample-cqt/index.json"` を書く。
+play.html の URL パラメータで表示方法を切り替えられる:
+`cqt=video` (spectrum 動画), `cqt=data` (事前計算データ), `cqt=3` (両方を並べる)、
+`cqtlead=0.1` (再生位置より何秒先のデータを表示するか。既定 0.1)。
 
 # usage
 

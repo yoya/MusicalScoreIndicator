@@ -71,9 +71,49 @@ if ('timeScheduleOffset' in config) {
     context.tailTime -= offset;
 }
 
+// CQT (spectrum) の表示方法 (cqt.js)。
+//   "video": spectrum 動画 (movie.sh が作る showcqt の動画) を同期再生する
+//   "data":  事前計算データ (movie/cqtdata.sh が作る。設定 JSON の spectrumData) を
+//            canvas に描く。動画より通信量・負荷が小さく、遅れも無い
+//   "live":  再生中の音声をリアルタイムに解析して描く (試作。解析窓の分だけ遅れる)
+// 既定は spectrumData があれば "data"、無ければ "video"。URL の cqt= で選べる:
+//   cqt=video: 動画, cqt=data: データ, cqt=1: live, cqt=2: live と動画を並べる,
+//   cqt=3: データと動画を並べる (比較用)
+// live は YouTube や別オリジンの動画の音声を取り出せないので使えない。
+const spectrumMode = (() => {
+    const hasCQT = (typeof liveCQT !== "undefined");
+    const canData = hasCQT && !! config.spectrumData;
+    const fallback = canData ? { video: false, canvas: "data" } : { video: true, canvas: null };
+    const m = getURLParams("cqt");
+    if (m === "video") {
+	return { video: true, canvas: null };
+    }
+    if (m === "data" || m === "3") {
+	if (! canData) {
+	    console.warn("cqt: spectrumData が無いので spectrum 動画を使います");
+	    return { video: true, canvas: null };
+	}
+	return { video: (m === "3"), canvas: "data" };
+    }
+    if (m === "1" || m === "2") {
+	const src = config.bigvideo || config.file;
+	if (! hasCQT || /^https:\/\/www\.youtube\.com\//.test(src) ||
+	    new URL(src, window.location.href).origin !== window.location.origin) {
+	    console.warn("cqt: この動画の音声は解析できません", src);
+	    return fallback;
+	}
+	return { video: (m === "2"), canvas: "live" };
+    }
+    return fallback;
+})();
+
 let boot = 0;
 document.addEventListener("DOMContentLoaded", (e) => {
-    $("#spectrum").setSource(config.spectrum);
+    if (spectrumMode.video) {
+	$("#spectrum").setSource(config.spectrum);
+    } else {
+	$("#spectrum").style.display = "none";  // 読み込みもしない
+    }
     init();
     sendMessage('loaded', {});
 });
@@ -87,12 +127,13 @@ function init() {
     }
     $("#waveimage").src = config.waveimage;
     $("#video").setSource(config.file);
+    const spectrumSlaves = spectrumMode.video ? [$("#spectrum")] : [];
     if (config.bigvideo) {
 	$("#bigvideo").setSource(config.bigvideo);
 	$("#bigvideoContainer").style.display = "block";
-	videoCluster = new makeVideoCluster($("#bigvideo"), [$("#video"), $("#spectrum")]);
+	videoCluster = new makeVideoCluster($("#bigvideo"), [$("#video"), ...spectrumSlaves]);
     } else {
-	videoCluster = new makeVideoCluster($("#video"), [$("#spectrum")]);
+	videoCluster = new makeVideoCluster($("#video"), spectrumSlaves);
     }
     masterVideo = videoCluster.getMaster();
     // 診断ログ (URL に debug=1 がある時のみ。debug.js)
@@ -105,7 +146,17 @@ function init() {
     if (config.bigvideo) {
 	dattach($("#video"), "video", slaveEvents);
     }
-    dattach($("#spectrum"), "spectrum", slaveEvents);
+    if (spectrumMode.video) {
+	dattach($("#spectrum"), "spectrum", slaveEvents);
+    }
+    if (spectrumMode.canvas) {
+	$("#liveSpectrumContainer").style.display = "block";
+	if (spectrumMode.canvas === "data") {
+	    liveCQT.setupData(masterVideo, $("#liveSpectrum"), $("#liveSpectrumInfo"), config.spectrumData);
+	} else {
+	    liveCQT.setup(masterVideo, $("#liveSpectrum"), $("#liveSpectrumInfo"));
+	}
+    }
     const refUrl = config.reference;
     if (refUrl) {
 	const r = loadFile(refUrl);

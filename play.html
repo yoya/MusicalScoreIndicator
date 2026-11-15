@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8"/>
     <!-- ?v= はブラウザに古い css/js を使わせないためのもの。
-         play.css / utils.js / debug.js / play.js を変更したら日付を更新する。
+         play.css / utils.js / debug.js / cqt.js / play.js を変更したら日付を更新する。
          一覧ページ (*/*.html) も utils.js / list.js を ?v= 付きで読んでいるので、
          utils.js / list.js を変更したらそちらも合わせて更新する。 -->
     <link rel="stylesheet" href="play.css?v=20261115.2">
@@ -83,6 +83,10 @@
             <video id="spectrum" width="448" height="136" playsinline>
           </div>
         </div>
+        <div class="row" id="liveSpectrumContainer" style="margin: 0.5em; display: none;">
+          <canvas id="liveSpectrum" width="448" height="136" style="background-color: black; max-width: 100%;"> </canvas>
+          <div id="liveSpectrumInfo" style="font-size: 9px; max-width: 448px;"> </div>
+        </div>
       </div>
     </div>
     <div class="flex flex-center">
@@ -95,6 +99,7 @@
     </div>
     <script src="utils.js?v=20261115.5"> </script>
     <script src="debug.js?v=20261115.2"> </script>
-    <script src="play.js?v=20261115.4"> </script>
+    <script src="cqt.js?v=20261115.4"> </script>
+    <script src="play.js?v=20261115.6"> </script>
   </body>
 </html>
