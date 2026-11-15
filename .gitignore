@@ -1,0 +1,24 @@
+# --- OS ---
+.DS_Store
+
+# --- エディタ (Emacs) のバックアップ・自動保存・ロック ---
+*~
+\#*\#
+.#*
+
+# --- 作業途中・退避ファイル ---
+*.failed
+*.taihi
+tmp/
+
+# --- movie.sh の中間ファイル (通常は rm されるが、途中で失敗した時用) ---
+*-tmp.wav
+*-spectrum.gif
+
+# --- 動画・音声 (movie/ は合計 9.7GB あり、1ファイル 100MB 超もある) ---
+# 管理方針が決まったら、必要な行のコメントを外す。
+# git で管理しないなら:
+# movie/**/*.mp4
+# movie/**/*.m4a
+# git-lfs で管理するなら .gitignore ではなく .gitattributes に:
+# movie/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
