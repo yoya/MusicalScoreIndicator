@@ -370,8 +370,22 @@ function seekVideo(t) {
 //   以前は 2 秒で諦めていたので、メタデータが遅いと再生されなかった。
 // - タイマーが動いている間は「再生指示が保留中」として扱い、onInitialReady は
 //   一時停止しない (isPlayPending)。
+//
+// シーク先のデータを読み込み中 (seeking / readyState が足りない) の間は、play は
+// 既に頼んであり読み込みが済めば始まるので、playVideo を呼び直さず回数にも数えない。
+// 以前は 2 秒 (200ms × 10 回) で諦めていたので、サーバーが遅いとシークの読み込みが
+// 間に合わず "retry over" になっていた。待つ上限は PLAY_WAIT_READY_MAX。
+// (YouTube の iframe には seeking / readyState が無いので、今まで通り回数で数える)
 let playRetryTimerId = null;
 const PLAY_WAIT_READY_MAX = 60 * 1000;  // 読み込み完了を待つ上限 (ms)
+function isMasterLoading() {
+    const v = masterVideo;
+    // play が通っている (paused でない) のにデータが足りない時だけ待つ。
+    // play 自体が拒否・無視されて paused のままなら、待たずに呼び直す
+    return v.seeking === true ||
+	(v.paused === false && typeof v.readyState === "number" &&
+	 v.readyState < HTMLMediaElement.HAVE_FUTURE_DATA);
+}
 function cancelPlayRetry() {
     if (playRetryTimerId) {
 	clearTimeout(playRetryTimerId);
@@ -395,7 +409,14 @@ function playWithRetry(maxRetry = 10, interval = 200) {
 	    sendMessage('playstarted', {currentTime: t});
 	    return ;
 	}
-	if (initialReady) {
+	if (initialReady && count > 0 && isMasterLoading()) {
+	    if (Date.now() - startedAt > PLAY_WAIT_READY_MAX) {
+		console.error("playWithRetry: 読み込みが終わらないので諦めます", {waited: Date.now() - startedAt});
+		dlog("playWithRetry GIVE UP (still loading after " + PLAY_WAIT_READY_MAX / 1000 + "s)");
+		return ;
+	    }
+	    // 読み込み待ち: 呼び直さず、回数にも数えない
+	} else if (initialReady) {
 	    if (count >= maxRetry) {
 		console.error("playWithRetry: retry over", {count});
 		dlog("playWithRetry GIVE UP after " + count);
