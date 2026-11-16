@@ -15,14 +15,6 @@ const dsetTimeSource = (fn) => {
     if (typeof debugSetTimeSource === "function") { debugSetTimeSource(fn); }
 };
 
-/*
- * https://developers.google.com/youtube/iframe_api_reference?hl=ja
- */
-
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 let iframe_index = null;
 
 /*
@@ -108,7 +100,39 @@ if (cqtDataPromise) {
     cqtDataPromise.catch(err => { console.info("cqt: 事前計算データ無し", cqtDataUrl, err.message); });
 }
 
+/*
+ * YouTube の IFrame Player API は、YouTube の動画を使う曲の時だけ読み込む
+ * (ネットに繋がらない環境でもローカルの動画の曲は再生できるように)。
+ * https://developers.google.com/youtube/iframe_api_reference?hl=ja
+ * init() はページの読み込みと API の準備の 2 つが揃ってから動く (boot)。
+ */
+const YOUTUBE_PREFIX = "https://www.youtube.com/watch?v=";  // utils.js の setSource と同じ
+const useYouTube = [config.file, config.bigvideo, config.spectrum].some(
+    s => typeof s === "string" && s.startsWith(YOUTUBE_PREFIX));
 let boot = 0;
+if (useYouTube) {
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    tag.onerror = () => {  // オフラインなど。YouTube の動画は再生できないので、その旨を出す
+	console.error("YouTube の API を読み込めません", tag.src);
+	const show = () => {
+	    for (const id of ["#resetButton", "#playButton"]) {
+		$(id).textContent = "YouTube に接続できません";
+		$(id).disabled = true;
+	    }
+	};
+	if (document.readyState === "loading") {
+	    document.addEventListener("DOMContentLoaded", show);
+	} else {
+	    show();
+	}
+    };
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+} else {
+    boot++;  // API を待たない
+}
+
 document.addEventListener("DOMContentLoaded", (e) => {
     if (spectrumMode.video) {
 	$("#spectrum").setSource(config.spectrum);
