@@ -81,7 +81,8 @@ play.html は spectrum 動画 (showcqt) と同じ絵を canvas に描く (cqt.js
 
 URL パラメータ: `cqt=video` (spectrum 動画)、`cqt=live` (リアルタイム解析)、
 `cqt=3` (データと spectrum 動画を並べる)、`cqt=2` (リアルタイム解析と spectrum 動画を並べる)、
-`cqtlead=0.1` (データを何秒先に表示するか)、`cqtfast=0` (リアルタイム解析の窓長を showcqt と同じにする)。
+`cqtlead=0.1` (データを何秒先に表示するか)、`cqtfast=0` (リアルタイム解析の窓長を showcqt と同じにする)、
+`cqtdebug=1` (描画時間や先行時間などの数値を表示する)。
 
 # usage
 

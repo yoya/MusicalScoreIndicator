@@ -42,6 +42,7 @@
  *   cqtdelay=<秒>    音声だけを遅らせる (解析窓の遅れを打ち消す実験用。楽譜表示は補正しない)
  *   cqtlat=auto|<秒> 出力レイテンシ分だけ表示を遅らせる (既定 auto: AudioContext の値を使う)
  *   cqtfps=<fps>     解析・描画の上限 fps (既定 30。間の行は補間する)
+ *   cqtdebug=1       描画時間・先行時間・遅延などの数値を表示する
  *
  * AudioContext は操作 (タップ等) の中でないと鳴らせない (iOS) ので、最初の操作で
  * 作る。それまでは video 要素がそのまま音を出す。
@@ -223,7 +224,10 @@ const liveCQT = (() => {
 	}
     }
 
+    // 空の時は欄の高さが 0 になる
     function setInfo(s) { if (info) { info.textContent = s; } }
+    // 数値の表示はデバッグ用 (cqtdebug=1 の時だけ)
+    function debugInfo() { return getURLParams("cqtdebug") === "1"; }
 
     // AudioContext を作る (まだ動いていなくてもよい)
     function ensureContext() {
@@ -427,7 +431,7 @@ const liveCQT = (() => {
 	if (now - statSince > 1000) {
 	    const fps = statFrames * 1000 / (now - statSince);
 	    const ms = statFrames ? statCompute / statFrames : 0;
-	    setInfo("解析 " + ms.toFixed(2) + "ms/frame, " + fps.toFixed(0) + "fps" +
+	    setInfo(! debugInfo() ? "" : "解析 " + ms.toFixed(2) + "ms/frame, " + fps.toFixed(0) + "fps" +
 		    " | 出力遅延 " + (outputLatency() * 1000).toFixed(0) + "ms" +
 		    " (base " + ((actx.baseLatency || 0) * 1000).toFixed(0) +
 		    " + out " + ((actx.outputLatency || 0) * 1000).toFixed(0) + ")" +
@@ -648,9 +652,9 @@ const liveCQT = (() => {
 	// 1 秒ごと。読み込み中の表示は、読み込めたらすぐ消す (停止中は次の描画が無いので)
 	if (now - drawSince > 1000 || ! ok || infoLoading) {
 	    infoLoading = ! ok;
-	    setInfo((ok ? "" : "CQT データ読み込み中… ") +
+	    setInfo((ok ? "" : "CQT データ読み込み中… ") + (! debugInfo() ? "" :
 		    "描画 " + (drawCount ? drawMs / drawCount : 0).toFixed(2) + "ms" +
-		    " | " + (leadTime >= 0 ? "先行 " : "遅延 ") + Math.abs(leadTime).toFixed(2) + "秒");
+		    " | " + (leadTime >= 0 ? "先行 " : "遅延 ") + Math.abs(leadTime).toFixed(2) + "秒"));
 	    drawSince = now; drawMs = 0; drawCount = 0;
 	}
     }
